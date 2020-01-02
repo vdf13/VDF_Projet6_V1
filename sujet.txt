@@ -2,9 +2,11 @@ Quel sujet choisir pour le projet  6 "Participez à la vie de la communauté Ope
 
 - sauvegarde de fichiers/ répertoires entre plusieurs machines 
 
-- Automatisation d'installation d'un serveur linux et configuration
+- Automatisation d'installation de serveurs linux et configuration au choix
     ex dhcp, puis plages adresses  ....
     
 - surveillance des logs avec filtres d'alarme
+
+- console de gestions de serveurs arrêts, marche ...;
 
 - autres ...
