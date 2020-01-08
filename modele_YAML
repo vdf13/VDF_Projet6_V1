@@ -1,0 +1,32 @@
+# http://sweetohm.net/article/introduction-yaml.html    exemple site avec références écriture
+# http://www.yamllint.com/      test validité code YAML
+# https://pyyaml.org/           lien pour télécharger le module yaml pour Python
+# package a installer pour avoir le module yaml  apt-get install yaml
+
+%YAML 1.1
+
+--- # YAML FILE for program xxxx
+Modèle de fichier YAML pour installation du rôle et configuration du rôle.
+
+# Partie Configuration d'un rôle
+--- # Indented Block ? que mettre dans ce paragraphe ?
+...
+--- # Utile a une connexion IP
+  user_ssh: administrateur
+  user_ssh_password: sha1
+  server_name: nom
+  server_IP: x.x.x.x
+...  
+--- # Utile a configurer un rôle en () des exemple de champ rempli
+  nom_role: role (dhcp)
+  os_cible_server: os_name  (debian)
+  installer_name: yum (pour redhat)
+  package_name: dhcp (pour redhat)
+...  
+--- # Base de commandes install en fonction version OS
+centOs_dhcp: yum install dhcp
+debian_dhcp: apt install isc-dhcp-server
+...  
+  
+  
+
