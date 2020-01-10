@@ -2,6 +2,10 @@
 
 
 Lancer programme avec argument ( test, auto, semi-auto)
+        #  Test ne lance qu'une partie test pour vérifier que le role est fonctionnel
+        #  Auto installe et configure un role de manière automatique
+        #  Semi-auto installe et configure un role avec confirmation de chaque étape
+        
 Si **auto** alors
     Chercher adresse_IP dans le fichier (variable fixé a admin)
     lancer *ouverture_fichier*
