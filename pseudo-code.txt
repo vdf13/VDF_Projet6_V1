@@ -2,10 +2,13 @@
 
 
 Lancer programme avec argument ( test, auto, semi-auto)
+        #  Test ne lance qu'une partie test pour vérifier que le role est fonctionnel
+        #  Auto installe et configure un role de manière automatique
+        #  Semi-auto installe et configure un role avec confirmation de chaque étape
+        
 Si **auto** alors
-   lancer *_ouverture_fichier*
-   
-Chercher adresse_IP dans le fichier (variable fixé a admin)
+    Chercher adresse_IP dans le fichier (variable fixé a admin)
+    lancer *ouverture_fichier*
     Si adresse_IP trouvé alors:
         Connecter a la machine en ssh (clé déjà installé donc pas de mot de passe)
     sinon: 
@@ -13,9 +16,10 @@ Chercher adresse_IP dans le fichier (variable fixé a admin)
         *ecrire_fichier_log* message Adresse IP non trouvé
     Test de réponse du serveur
         Si réponse alors:
+            lancer *ouverture_fichier*
             Chercher rôle dans fichier
                 Si role trouvé alors:
-                    lancer *installation_role*
+                    lancer *installation_role* 
                 sinon:
                     exception
                     *ecrire_fichier_log* avec pas de rôle trouvé
@@ -23,28 +27,104 @@ Chercher adresse_IP dans le fichier (variable fixé a admin)
             exception
             *ecrire_fichier_log*
  
+Si **semi-auto** alors
+    Chercher adresse_IP dans le fichier (variable fixé a admin)
+    lancer *ouverture_fichier*
+    Si adresse_IP trouvé alors:
+        Connecter a la machine en ssh (clé déjà installé donc pas de mot de passe)
+    sinon: 
+        Exception 
+        *ecrire_fichier_log* message Adresse IP non trouvé
+    Test de réponse du serveur
+        Si réponse alors:
+            lancer *ouverture_fichier*
+            Chercher rôle dans fichier
+                Si role trouvé alors:
+                    Visualiser le role demandé et confirmation d'installation
+                    Si oui 
+                        lancer *installation_role* 
+                    si non
+                        Terminer programme 
+                        *ecrire_fichier_log* avec "installation rôle abandonnée"
+                sinon:
+                    exception
+                    *ecrire_fichier_log* avec pas de rôle trouvé
+        Sinon:
+            exception
+            *ecrire_fichier_log* avec connexion pas possible
+
+Si **test** alors
+    Chercher adresse_IP dans le fichier (variable fixé a admin)
+    lancer *ouverture_fichier*
+    Si adresse_IP trouvé alors:
+        Connecter a la machine en ssh (clé déjà installé donc pas de mot de passe)
+    sinon: 
+        Exception 
+        *ecrire_fichier_log* message Adresse IP non trouvé
+    Test de réponse du serveur
+        Si réponse alors:
+            lancer *ouverture_fichier*
+            Chercher rôle dans fichier
+                Si role trouvé alors:
+                    Visualiser le role demandé et la confirmation de test
+                    Si oui 
+                        lancer *test_role* 
+                    si non
+                        Terminer programme 
+                        *ecrire_fichier_log* avec "test rôle abandonnée"
+                sinon:
+                    exception
+                    *ecrire_fichier_log* avec pas de test rôle trouvé
+        Sinon:
+            exception
+            *ecrire_fichier_log* avec connexion pas possible
+
+--------------            
 
 *OUVERTURE_FICHIER*
     ouvrir fichier yaml
     lire fichier yaml
-    charger la liste dans une variable $donnee_yaml
+    charger les données dans une variable $donnee_yaml
     fermer le fichier
+    exception
+        *ecrire_fichier_log* avec problème ouverture du fichier
     
 *INSTALLATION_ROLE*
-    Role_name = role dans liste 
-    $commande -install $role
+    Chercher dans fichier yaml si un rôle est défini 
+    lancer *ouverture_fichier*
+    $Role_name = $role dans liste trouvé dans le fichier
+    lancer installation     exemple ($commande -install $role)
+    si semi-auto alors
+        Visualiser et demander confirmation de l'installation
     si exception:
         *ecrire_fichier_log* avec erreur d'installation
     sinon: 
         lancer *configuration_role*
         
 *CONFIGURATION_ROLE*
-    Lire $donnee_yaml en lien avec $role
-    ecrire fichier $fichier_config_role suivant $role
+    lancer *ouverture_fichier*
+    Lire $donnee_yaml en lien avec $role et chercher la partie configuration associé
+    ecrire fichier de configuration dans le bon répertoire    $fichier_config_role suivant $role
+    si semi-auto alors
+        Visualiser et demander confirmation de la configuration
+    si exception:
+        *ecrire_fichier_log* avec erreur de configuration
+    sinon: 
+        lancer *test_role*
     
     
-
+*TEST_ROLE*
+    lancer *ouverture_fichier*
+    Lire $donnee_yaml en lien avec $role et chercher la partie $test_role associé
+    lancer la commande test associé au role testé
+    si exception:
+        *ecrire_fichier_log* avec erreur de test
+    sinon: 
+        afficher message FIN d'installation
 
 
 *ECRIRE_FICHIER_LOG*
-    récupérer message personnalisé et ecrire fichier /var/log/programme_ICS
+    ouvrir fichier log
+    récupérer message personnalisé et ecrire le fichier log   exemple: /var/log/programme_ICS
+    fermer fichier log
+
