@@ -1,4 +1,5 @@
 # **Pseudo Code for P6**
+Nom du programme ICS (Installation Configuration Serveur)
 
 
 Lancer programme avec argument ( test, auto, semi-auto)
@@ -7,13 +8,13 @@ Lancer programme avec argument ( test, auto, semi-auto)
         #  Semi-auto installe et configure un role avec confirmation de chaque étape
         
 Si **auto** alors
-    Chercher adresse_IP dans le fichier (variable fixé a admin)
+    # Chercher adresse_IP dans le fichier yaml du répertoire  (user fixé a admin, compte sera créé sur les MC)
     lancer *ouverture_fichier*
-    Si adresse_IP trouvé alors:
-        Connecter a la machine en ssh (clé déjà installé donc pas de mot de passe)
+    Si adresse_IP trouvé dans le fichier alors:
+        Se connecter a la machine en ssh (la clé sera déjà installé, donc pas de mot de passe à fournir)
     sinon: 
         Exception 
-        *ecrire_fichier_log* message Adresse IP non trouvé
+        *ecrire_fichier_log* message Adresse_IP non trouvé
     Test de réponse du serveur
         Si réponse alors:
             lancer *ouverture_fichier*
@@ -25,27 +26,27 @@ Si **auto** alors
                     *ecrire_fichier_log* avec pas de rôle trouvé
         Sinon:
             exception
-            *ecrire_fichier_log*
+            *ecrire_fichier_log* connexion pas possible
  
 Si **semi-auto** alors
-    Chercher adresse_IP dans le fichier (variable fixé a admin)
+    # Chercher adresse_IP dans le fichier yaml du répertoire  (user fixé a admin, compte sera créé sur les MC)
     lancer *ouverture_fichier*
     Si adresse_IP trouvé alors:
-        Connecter a la machine en ssh (clé déjà installé donc pas de mot de passe)
+        Connecter a la machine en ssh (la clé sera déjà installé, donc pas de mot de passe à fournir)
     sinon: 
         Exception 
-        *ecrire_fichier_log* message Adresse IP non trouvé
+        *ecrire_fichier_log* message Adresse_IP non trouvé
     Test de réponse du serveur
         Si réponse alors:
             lancer *ouverture_fichier*
             Chercher rôle dans fichier
                 Si role trouvé alors:
-                    Visualiser le role demandé et confirmation d'installation
+                    Visualiser le role demandé et demander la confirmation d'installation
                     Si oui 
                         lancer *installation_role* 
                     si non
                         Terminer programme 
-                        *ecrire_fichier_log* avec "installation rôle abandonnée"
+                        *ecrire_fichier_log* avec "installation du rôle abandonnée"
                 sinon:
                     exception
                     *ecrire_fichier_log* avec pas de rôle trouvé
@@ -54,13 +55,13 @@ Si **semi-auto** alors
             *ecrire_fichier_log* avec connexion pas possible
 
 Si **test** alors
-    Chercher adresse_IP dans le fichier (variable fixé a admin)
+    # Chercher adresse_IP dans le fichier yaml du répertoire  (user fixé a admin, compte sera créé sur les MC)
     lancer *ouverture_fichier*
     Si adresse_IP trouvé alors:
-        Connecter a la machine en ssh (clé déjà installé donc pas de mot de passe)
+        Connecter a la machine en ssh (la clé sera déjà installé, donc pas de mot de passe à fournir)
     sinon: 
         Exception 
-        *ecrire_fichier_log* message Adresse IP non trouvé
+        *ecrire_fichier_log* message Adresse_IP non trouvé
     Test de réponse du serveur
         Si réponse alors:
             lancer *ouverture_fichier*
@@ -84,15 +85,15 @@ Si **test** alors
 *OUVERTURE_FICHIER*
     ouvrir fichier yaml
     lire fichier yaml
-    charger les données dans une variable $donnee_yaml
+    charger les données dans une variable (exemple : $donnee_yaml)
     fermer le fichier
     exception
         *ecrire_fichier_log* avec problème ouverture du fichier
     
 *INSTALLATION_ROLE*
-    Chercher dans fichier yaml si un rôle est défini 
+    # Chercher dans fichier yaml si un rôle est défini 
     lancer *ouverture_fichier*
-    $Role_name = $role dans liste trouvé dans le fichier
+    chercher si un role est dans le fichier ( ex: $Role_name = $role dans liste trouvé dans un fichier de référence)
     lancer installation     exemple ($commande -install $role)
     si semi-auto alors
         Visualiser et demander confirmation de l'installation
@@ -102,9 +103,10 @@ Si **test** alors
         lancer *configuration_role*
         
 *CONFIGURATION_ROLE*
+    # Configurer un role a partir de donées du fichier yaml
     lancer *ouverture_fichier*
-    Lire $donnee_yaml en lien avec $role et chercher la partie configuration associé
-    ecrire fichier de configuration dans le bon répertoire    $fichier_config_role suivant $role
+    Lire le fichier chargé et trouver les datas qui correspondent au role a configurer ( fichier yaml pour data, fichier référence chemin ou valeurs par défaut)
+    ecrire fichier de configuration dans le bon répertoire    ( $fichier_config_role suivant $role )
     si semi-auto alors
         Visualiser et demander confirmation de la configuration
     si exception:
@@ -115,7 +117,7 @@ Si **test** alors
     
 *TEST_ROLE*
     lancer *ouverture_fichier*
-    Lire $donnee_yaml en lien avec $role et chercher la partie $test_role associé
+    Lire $donnee_yaml en lien avec $role et chercher la partie $test_role associé dans le fichier référence
     lancer la commande test associé au role testé
     si exception:
         *ecrire_fichier_log* avec erreur de test
@@ -125,6 +127,6 @@ Si **test** alors
 
 *ECRIRE_FICHIER_LOG*
     ouvrir fichier log
-    récupérer message personnalisé et ecrire le fichier log   exemple: /var/log/programme_ICS
+    récupérer message personnalisé des différentes étapes et ecrire le fichier log   (exemple: /var/log/programme_ICS )
     fermer fichier log
 
