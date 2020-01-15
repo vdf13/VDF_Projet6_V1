@@ -1,5 +1,6 @@
 # **Pseudo Code for P6**
 Nom du programme ICS (Installation Configuration Serveur)
+              ou RIAC (Role Installator and Configurator)
 
 
 Lancer programme avec argument ( test, auto, semi-auto)
