@@ -10,32 +10,27 @@
 
 import os
 
-# Se positionner sur le répertoire ou se trouvent les fichiers yaml
-try:
-	os.chdir("c:/01_DATA/PYTHON/VDF_P6")  
-	curent_dir = os.getcwd()
-except FileNotFoundError:
-	curent_dir = os.getcwd()
-	print ("stop")
+aa = "C:\\01_DATA\\PYTHON\\VDF_P6\\un_fichier.yml"
+bb = "C:\\01_DATA\\PYTHON\\VDF_P6\\un_fichier2.yml"
+cc = "C:\\01_DATA\\PYTHON\\VDF_P6\\autre_fichier.yml"
+dd = "C:\\01_DATA\\PYTHON\\VDF_P6\\b_error_a_supprimer.yml" # erreur
 
-
-
-# Ouvre les fichiers YAML (avec l'extension yml)
-try:
-	for file in os.listdir(curent_dir):
-		if file.endswith(".yml"):
-			#print(os.path.join(curent_dir, file))
-			print("Fichier en cours de traitement : {} ".format(file))
-			# Ouvrir le fichier se terminant par yml
-			file_opened = open(os.path.join(curent_dir, file), "r")
-			contenu = file_opened.read() # Passer le contenu a une variable
+# Définir la fonction ouverture qui est appelé avec comme argument le nom du fichier
+def ouverture(monfichier):
+	try:
+		with open(monfichier, "r") as file_opened:
+			contenu = file_opened.read()
 			print(contenu)
-			file_opened.close()
-except UnicodeDecodeError:
-	print("Problème lors de l'ouverture du fichier : {} ".format(file))
-	file_opened.close()
+			#return file_opened.read()
+			return contenu
+	except FileNotFoundError:
+		print("Le fichier {} n'est pas accessible. ".format(monfichier))
+	except UnicodeDecodeError:
+		print("Problème lors de l'ouverture du fichier : {} ".format(monfichier))
+		file_opened.close()
+	except:
+		print("Autre erreur")
 
-	
 
 
 
