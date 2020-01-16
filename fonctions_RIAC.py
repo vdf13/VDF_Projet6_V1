@@ -90,6 +90,14 @@ def ecrire_fichier(monfichier, contenu):
 		file_to_close.close()
 #  Penser à écrire le fichier log
 
+def configuration_role(traitement, role_demande):
+	""" Methode pour configurer les rôles détecté dans le fichier yaml
+
+	- partie du fichier traité en argument
+	- role choisi en argument
+
+	"""
+
 
 
 
