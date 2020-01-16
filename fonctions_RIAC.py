@@ -97,6 +97,44 @@ def configuration_role(traitement, role_demande):
 	- role choisi en argument
 
 	"""
+	if role_demande == 'dhcp':
+		configuration_dhcp(traitement)
+	elif role_demande == 'dns':
+		configuration_dns(traitement)
+	elif role_demande == 'apache':
+		configuration_apache(traitement)
+	else:
+		print("Aucun rôle défini !? ")
+
+def configuration_dhcp(traitement):
+	""" Fonction qui va générer les fichiers de configuration du rôle dhcp
+
+	- traitement est la partie du fichier qui concerne le dhcp
+	- renvoie 2 fichiers de configuration
+	- /etc/init.d/isc-dhcp-server
+	- /etc/dhcp/dhcpd.conf
+
+	"""
+	file_1 = "C:\\01_DATA\\PYTHON\\VDF_P6\\isc-dhcp-server" # chemin à modifier ultérieurement
+	file_2 = "C:\\01_DATA\\PYTHON\\VDF_P6\\dhcpd.conf" # chemin à modifier ultérieurement
+	if 'dhcp_interface' in traitement:
+		texte_to_write = traitement['dhcp_interface']  # Doublon a voir si besoin de garder
+		line_to_write = "INTERFACEV4=" + '"' + traitement['dhcp_interface'] + '"'
+		print(line_to_write)
+		ecrire_fichier(file_1, line_to_write)
+		print("le fichier {0} viens d'être créé avec la/les valeurs : {1} ".format(file_1, line_to_write))
+	
+
+	else:
+		print("Il manque dans le fichier de configuration le parametre dhcp_interface ")
+
+
+def configuration_dns(traitement):
+	print
+
+def configuration_apache(traitement):
+	print
+
 
 
 

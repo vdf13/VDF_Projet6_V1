@@ -63,6 +63,8 @@ i = 0			# compteur pour boucle while de theme
 for val in _donnees:
 	theme.append(val)
 
+
+# Boucle pour charger les parties du fichier et trouver le rôle, appel de fonctions
 while i < len(theme):
 	print("Partie du fichier YAML analysé pour recherche de rôle : {}".format(theme[i]))
 	traitement = _donnees[theme[i]]
@@ -80,41 +82,7 @@ while i < len(theme):
 		print("role non trouvé dans le fichier")
 		# ecrire log
 
-""" essai 2 
-# création de 2 variables qui vont contenir les parties inclusent dans le dictionnaire
-for val in theme:
-	partie = _donnees[val]
-	chercher_role(partie, role_trouve)
-	print(role_trouve)
-	if role_trouve == True:
-		print(role_trouve)
-		print(" trouvé dans main")
-		# actions a configurer
-	else:
-		print(role_trouve)	
 
-		#print("role non trouvé dans la partie du fichier : {} ".format(partie))
-		# ecrire log
-
-"""
-"""	
-	# chercher si le role existe dans le fichier yml champ role_name
-	if 'role_name' in partie:
-		role_demande = partie['role_name']
-		if role_demande is 'dhcp' or role_demande is 'dns':
-			role_trouve = True
-			print("Voici le role qui sera configuré : {}".format(role_demande))
-			return(partie)
-		else:
-			print("Erreur dans la syntaxe le rôle : {} n'est pas accepté. \n Choix possibles de rôles: dhcp , dns".format(role_demande))
-			# ecrire log
-	else:
-		if role_trouve == True:
-			print("role en cours de configuration")
-		else:
-			print("role non trouvé dans le fichier")
-		# ecrire log
-"""
 		
 
 
