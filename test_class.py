@@ -20,6 +20,7 @@ class DhcpInterface:
 		self.text_to_write = ''
 		self.input_yml = input_yml
 
+
 		if self.key_interfaceV4 in self.input_yml:
 			self.write(self.text_interfaceV4)
 			
@@ -29,6 +30,63 @@ class DhcpInterface:
 			self.text_to_write += "\n"
 		self.text_to_write += text_to_add
 		return self.text_to_write
+
+class DhcpConf:
+	""" Classe qui va créer l'objet fichier dhcpd.conf
+	Attributs de cette classe :
+	- nom du fichier qui sera créé
+	- valeur de la clé cherché dans le dictionnaire
+	- Texte formaté a écrire 
+
+	"""
+	def __init__(self, input_yml={}, **donnees):
+		""" Création des attributs de l'objet Dhcpd.conf """
+		self._default_value = {
+		'default-lease-time': '600',
+		'max-lease-time': '7200',
+		'option subnet-mask': '',
+		'option broadcast-address': '',
+		'option routers': '',
+		'option domain-name-servers1': '', 
+		'option domain-name-servers2': '',
+		'authoritative': '#autoritative',
+		'option ntp-servers': '',
+		'option domain-name': 'example.org'
+		}
+		self.file_name = "C:\\01_DATA\\PYTHON\\VDF_P6\\dhcpd.conf"
+	
+
+		self.text_to_write = ''
+		self.input_yml = input_yml
+		modified_yml = input_yml.copy()
+
+		for cle in input_yml:
+			if cle not in self._default_value:
+				del modified_yml[cle]
+
+		self._default_value.update(modified_yml)
+		print(self._default_value)
+	
+
+
+
+
+
+	def write(self, text_to_add):
+		""" Méthode pour écrire le texte dans le fichier """
+		if self.text_to_write != "":
+			self.text_to_write += "\n"
+		self.text_to_write += text_to_add
+		return self.text_to_write
+
+
+
+
+
+
+
+
+
 
 
 class DictInputYaml(dict):
@@ -103,6 +161,14 @@ print(file.file_name)
 #print(file.key_interfaceV4)
 #print(file.text_interfaceV4)
 print(file.text_to_write)
+
+# partie test objet DhcpConf
+test = DhcpConf(final)
+
+
+
+
+
 
 ecrire_fichier(file.file_name, file.text_to_write)
 
