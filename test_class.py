@@ -11,7 +11,7 @@ class DhcpInterface:
 	- valeur 
 
 	"""
-	def __init__(self, input_yml={}):
+	def __init__(self, input_yml={}, text_to_write=''):
 		""" Création des attributs de l'objet fichier isc-dhcp-server """
 		self.file_name = "C:\\01_DATA\\PYTHON\\VDF_P6\\isc-dhcp-server"
 		self.key_interfaceV4 = 'dhcp_interface'
@@ -39,7 +39,7 @@ class DhcpConf:
 	- Texte formaté a écrire 
 
 	"""
-	def __init__(self, input_yml={}, **donnees):
+	def __init__(self, input_yml={}):
 		""" Création des attributs de l'objet Dhcpd.conf """
 		self._default_value = {
 		'default-lease-time': '600',
@@ -65,9 +65,29 @@ class DhcpConf:
 				del modified_yml[cle]
 
 		self._default_value.update(modified_yml)
-		print(self._default_value)
+		#print(self._default_value)
 	
+	def __repr__(self):
+			""" Comment sera représenté le résultat de l'objet """
+			chaine = "\
+# Configuration via programme\n\
+option domain-name {};\n\
+option domain-name-servers {}, {};\n\
+default-lease-time {};\n\
+max-lease-time {};\n\
+{};\n\n\
+ ".format(self._default_value['option domain-name'],
+ 	self._default_value['option domain-name-servers1'],
+ 	self._default_value['option domain-name-servers2'],
+ 	self._default_value['default-lease-time'],
+ 	self._default_value['max-lease-time'],
+ 	self._default_value['authoritative']
+ 	)
+			return chaine
 
+	def __str__(self):
+			""" comment est présenté avec print """
+			return repr(self)
 
 
 
@@ -160,10 +180,11 @@ file = DhcpInterface(input_yml = final)
 print(file.file_name)
 #print(file.key_interfaceV4)
 #print(file.text_interfaceV4)
-print(file.text_to_write)
+#print(file.text_to_write)
 
 # partie test objet DhcpConf
 test = DhcpConf(final)
+print(test)
 
 
 
