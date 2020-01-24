@@ -25,4 +25,9 @@ choix_role(val_yml)
 dhcpd = DhcpdConf(val_yml)
 print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dhcpd.output_file, file_yml))
 
+# Test de l'objet dns  named.conf
+test_dns_yml = "C:\\01_DATA\\PYTHON\\VDF_P6\\test_dns.yml"
+test_dns = cleaning_yml(ouverture_yml(test_dns_yml))
+dns = Dns(test_dns)
+print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1}".format( dns.output_file, test_dns))
 
