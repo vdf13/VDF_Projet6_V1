@@ -1,5 +1,5 @@
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
-# Sous linux penser à mettre le chemin de l'interpeteur Python
 
 import os
 
@@ -15,8 +15,8 @@ class Dns:
 	"""
 
 	def __init__(self, entree={}, text_to_write='', *donnees):
-		self.input_file = "C:\\01_DATA\\PYTHON\\VDF_P6\\dns_named.conf_template"
-		self.output_file = "C:\\01_DATA\\PYTHON\\VDF_P6\\named.conf"
+		self.input_file = "/home/administrateur/VDF_P6/dns_named.conf_template"
+		self.output_file = "/home/administrateur/VDF_P6/named.conf"
 		self.text_to_write = text_to_write
 		self.default_dict = {'TTL': 'val1', 'ORIGIN': 'val2'}
 		self.local_keys = ['TTL', 'ORIGIN']
@@ -79,8 +79,8 @@ class DhcpdConf:
 	"""
 	def __init__(self, entree={}, text_to_write=''):
 		""" Création des attributs de l'objet  """
-		self.output_file = "C:\\01_DATA\\PYTHON\\VDF_P6\\dhcpd.conf"
-		self.input_file = "C:\\01_DATA\\PYTHON\\VDF_P6\\dhcpd.conf_template_debian"
+		self.output_file = "/home/administrateur/VDF_P6/dhcpd.conf"
+		self.input_file = "/home/administrateur/VDF_P6/dhcpd.conf_template_debian"
 		self.default_dict = { "option domain-name ": "exemple.org", \
 		 "option domain-name-servers": "8.8.8.8, 8.8.4.4", \
 		  "default-lease-time": "600", \
