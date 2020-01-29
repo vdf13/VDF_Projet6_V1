@@ -46,10 +46,15 @@ info = sys.argv[2]
 Vars = ouverture_yml(fichier_yml)
 #print(Vars['role_name'])
 
+IP = "1.2.3.4"	# test d'affichage, a remplacer par variable ip du fichier
 # Test du role trouvé dans la variable Vars et parametre lancé a l'execution ex: python.py fichier dhcp
 if Vars['role_name'][info] == 'dhcp':
-	print("1er print", Vars['role_name'][info])
+	print("Le rôle {0} va être configuré sur le serveur : {1}\n".format(Vars['role_name'][info], IP))
 	dhcpd = DhcpdConf(Vars['role_name'])
 	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dhcpd.output_file, fichier_yml))
+	isc = IscDhcpServer(Vars['role_name'])
+	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( isc.output_file, fichier_yml))
 else:
 	print("pas trouvé de role à installer")
+
+
