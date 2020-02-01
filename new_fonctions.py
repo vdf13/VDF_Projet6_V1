@@ -1,7 +1,10 @@
- # -*- coding: utf-8 -*-
+#!/usr/bin/python2.7
+# -*- coding: utf-8 -*-
 
 
-import os, yaml, re
+import os
+import yaml
+import re
 
 
 
@@ -15,43 +18,69 @@ class Dns:
 
 	"""
 
-	def __init__(self, entree={}, text_to_write='', *donnees):
+	def __init__(self, entree={}, text_to_write=''):
+		#self.input_file = "/home/administrateur/VDF_P6/dns_named.conf_template"
 		self.input_file = "/home/administrateur/VDF_P6/dns_named.conf_template"
 		self.output_file = "/home/administrateur/VDF_P6/named.conf"
 		self.text_to_write = text_to_write
-		self.default_dict = {'TTL': 'val1', 'ORIGIN': 'val2'}
-		self.local_keys = ['TTL', 'ORIGIN']
-		self.donnees = donnees
+		self.default_dict = {\
+		'zone': 'example.org2', \
+		'type': 'master', \
+		'file': '/etc/bind/db.example.org', \
+		'directory': "/etc/bind/", \
+		'dump-file': '/var/log/named_dump.db', \
+		'statistics-file': '/var/log/named.stats', \
+		'forwarders': '10.0.10.254', \
+		'listen-on': '53' \
+		}
+		self.with_quote = ('zone', 'directory', 'dump-file', 'statistics-file')
+		self.with_brace = ('forwarders')
+		self.with_reverse = ('type', 'file')
 		self.entree = entree
-		self.lines = ouverture(self.input_file)
+		self.template = ouverture(self.input_file)
 
-		for key in self.local_keys:
-			if key in self.entree:
-				self.default_dict[key] = self.entree[key]
+		for key in self.entree.keys():
+			self.default_dict[key] = entree[key]
+		print(self.default_dict)
+
+		# on apelle la fonction de remplacement du texte
 		self.substitue()
 
 	def substitue(self):
-		""" Méthode qui va remplacer dans le texte les valeurs modifiés ou défaut"""
-		texte =''
-		#lines = self.text_to_write.splitlines()
-		# lines = self.text_to_write
-		#print(lines)
-		for line in self.lines:
-			if str(line).startswith("#") is True:
-				# cas ou il y a un # en début de ligne, on recopie la ligne
-				texte += line + "\n"								
-			else:
-				# Cas ou la ligne ne commence pas par #
-				for val in self.local_keys:
-					if val in line:
-						cc = line.find(val, 0, len(line))
-						texte += line[:cc] + val + " " + self.default_dict[val] + self.end_line
-						break # Important pour finir la condition
-				else:
-					texte += line + "\n"
+		'''
+		Fonction qui remplace dans le texte template les valeur du dictionnaire par défaut modifé
+		- fichier entrée yaml
+		- dictionnaire par défaut
+		'''
+		
+		#regexp = '[ ]([\w"., -/]*)' # key+_.," en fait jusque trouver le ;
+		regexp = '[ ]"([\w".,-/]*)' # key+_.," en fait jusque trouver le ; enlevé [ ]?
+		regexp2 = '[ ]{([\w .;]*)' # pour forwarders
 
-		self.text_to_write = texte
+		#print(self.template)
+		for key in self.default_dict:
+			
+			if key in self.template:
+				
+				print(key, self.default_dict[key])
+				if key in self.with_quote:
+					self.template = re.sub(r"{0}{1}".format(key, regexp), '{0} "{1}"'.format(key, self.default_dict[key]), self.template, count=1 )
+				elif key in self.with_brace:
+					self.template = re.sub(r"{0}{1}".format(key, regexp2), key + " { " + self.default_dict[key] + "; ", self.template, count=0 )
+				elif key in self.with_reverse:
+					for match in re.finditer(r"{0}{1}".format(key, regexp), self.template):
+						print(match)
+						pass
+					self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template, count=1)
+				else:
+					self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template, count=1 )
+					
+				self.text_to_write = self.template	
+			#print("\nkey = ", key, self.default_dict[key], self.text_to_write)	# a enlever, pour debuger
+			
 		ecrire_fichier(self.output_file, self.text_to_write)
+		
+		print(self.text_to_write)	# pour le debogage, a supprimer
 
 	def load_file():
 		# load base as yml file
@@ -97,12 +126,13 @@ class DhcpdConf:
 		
 		
 		# on remplace le dictionnaire par défaut par les valeurs chargées //// Poursuivre
-		# cette fonction pour gérer miexu le dict sur le vrai fichier yaml
+		# cette fonction pour gérer mieux le dict sur le vrai fichier yaml
 		for key in self.entree.keys():
 			self.default_dict[key] = entree[key]
 					
 		# on apelle la fonction de remplacement du texte
 		self.substitue()
+		
 
 	
 	def substitue(self):
@@ -113,13 +143,15 @@ class DhcpdConf:
 		'''
 		
 		regexp = '[ ]([\w"., -]*)' # key+_.," en fait jusque trouver le ;
+		
 
 		for key in self.default_dict:
-			if key in self.template:
-				self.text_to_write = re.sub(r"{0}{1}*".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template)
-		
+			self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template)
+			self.text_to_write = self.template
+			#print(self.text_to_write[1])
 		ecrire_fichier(self.output_file, self.text_to_write)
-		print(self.text_to_write)	# pour le debugage, a supprimer
+		
+		#print(self.text_to_write)	# pour le debogage, a supprimer
 	
 	def write(self, text_to_add=''):
 		""" Méthode pour écrire le texte dans le fichier """
@@ -139,7 +171,7 @@ class IscDhcpServer:
 		try:
 			if "INTERFACES" in self.entree.keys():
 				self.text_to_write = 'INTERFACES="{0}"'.format(self.entree["INTERFACES"])
-				print(self.text_to_write)
+				#print(self.text_to_write)
 				ecrire_fichier(self.output_file, self.text_to_write)
 
 			else:
