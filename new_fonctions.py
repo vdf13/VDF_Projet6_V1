@@ -11,6 +11,77 @@ import re
 
 
 # LES CLASSES
+class Dns2:
+	""" création de l'objet Dns
+	- En cours de dévellopement
+
+	"""
+
+	def __init__(self, entree={}, text_to_write=''):
+		#self.input_file = "/home/administrateur/VDF_P6/dns_named.conf_template"
+		self.input_file = "/home/administrateur/VDF_P6/dns_ztest"
+		self.output_file = "/home/administrateur/VDF_P6/db.test.dns"
+		self.text_to_write = text_to_write
+		self.default_dict = {\
+		'domain_name': 'serveur.exemple.org', \
+		'domain_IP': '66.77.88.99', \
+		'www_IP': '100.101.102.103', \
+		'domain_email': 'webmaster.serveur.exemple.org', \
+		'TTL': '604800', \
+		'ORIGIN': 'example.org', \
+		'serial': 'date_jour', \
+		'refresh': "3600 ou 1H", \
+		'retry': '1200 ou 15M', \
+		'expire': '2592000 ou 1m'\
+		}
+		self.with_dollar = ('ORIGIN', 'TTL')
+		self.with_SOA= ('serial', 'refresh', 'retry', 'expire')
+		self.entree = entree
+		self.template = ouverture(self.input_file)
+
+		for key in self.entree.keys():
+			self.default_dict[key] = entree[key]
+		#print(self.default_dict)
+
+		# on apelle la fonction de remplacement du texte
+		self.substitue()
+
+	def substitue(self):
+		'''
+		Fonction qui remplace dans le texte template les valeur du dictionnaire par défaut modifé
+		- fichier entrée yaml
+		- dictionnaire par défaut
+		'''
+		
+		#regexp = '[ ]([\w"., -/]*)' # key+_.," en fait jusque trouver le ;
+		#regexp = '[ ]([\w., -]*)' # key+_.," en fait jusque trouver le ; enlevé [ ]?
+		regexp2 = '[\d\w]*\s;\s' # pour forwarders
+		#regexp3 = '[\t\s]+.*'	# marche pour tab après TTL	
+		regexp = '\$'
+
+		#print(self.template)
+		for key in self.default_dict:
+			
+			if key in self.template:
+				
+				#print(key, self.default_dict[key])
+				if key in self.with_dollar:
+					#print("key in $$$$$$$$$ = ", key)
+					#print("trouve ?", re.search(r"{0}{1}[\t \w\d]*".format(regafter, key), self.template))
+					self.template = re.sub(r"{0}{1}[\t \w\d]*".format(regexp, key), '${0} {1}'.format(key, self.default_dict[key]), self.template, count=1 )
+				elif key in self.with_SOA:
+					self.template = re.sub(r"{0}{1}".format(regexp2, key), str(self.default_dict[key]) + " ; " + key, self.template, count=0 )
+				
+				else:
+					self.template = re.sub(r"{0}".format(key), "{0}".format(self.default_dict[key]), self.template)
+					
+				self.text_to_write = self.template	
+			#print("\nkey = ", key, self.default_dict[key], self.text_to_write)	# a enlever, pour debuger
+			
+		ecrire_fichier(self.output_file, self.text_to_write)
+		#print("///////")
+		#print(self.text_to_write)	# pour le debogage, a supprimer
+
 
 class Dns:
 	""" création de l'objet Dns
@@ -33,9 +104,9 @@ class Dns:
 		'forwarders': '10.0.10.254', \
 		'listen-on': '53' \
 		}
-		self.with_quote = ('zone', 'directory', 'dump-file', 'statistics-file')
+		self.with_quote = ('directory', 'dump-file', 'statistics-file')
 		self.with_brace = ('forwarders')
-		self.with_reverse = ('type', 'file')
+		self.with_zone = ('zone', 'type', 'file')
 		self.entree = entree
 		self.template = ouverture(self.input_file)
 
@@ -67,10 +138,8 @@ class Dns:
 					self.template = re.sub(r"{0}{1}".format(key, regexp), '{0} "{1}"'.format(key, self.default_dict[key]), self.template, count=1 )
 				elif key in self.with_brace:
 					self.template = re.sub(r"{0}{1}".format(key, regexp2), key + " { " + self.default_dict[key] + "; ", self.template, count=0 )
-				elif key in self.with_reverse:
-					for match in re.finditer(r"{0}{1}".format(key, regexp), self.template):
-						print(match)
-						pass
+				elif key in self.with_zone:	
+					print("trouve ?", re.search(r"{0}{1}[\t \w\d]*".format(regexp, key), self.template))
 					self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template, count=1)
 				else:
 					self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template, count=1 )
