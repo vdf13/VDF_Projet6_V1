@@ -40,7 +40,9 @@ if Vars['role_name'][info] == 'dhcp':
 elif Vars['role_name'][info] == 'dns':
 	print("Le rôle {0} va être configuré sur le serveur : {1}\n".format(Vars['role_name'][info], IP))
 	dns = Dns(Vars['role_name'])
+	dns2 = Dns2(Vars['role_name2'])
 	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dns.output_file, fichier_yml))
+	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dns2.output_file, fichier_yml))
 else:
 	print("pas trouvé de role à installer")
 
