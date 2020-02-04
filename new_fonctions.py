@@ -5,6 +5,7 @@
 import os
 import yaml
 import re
+import sys
 
 
 
@@ -19,8 +20,8 @@ class Dns2:
 
 	def __init__(self, entree={}, text_to_write=''):
 		#self.input_file = "/home/administrateur/VDF_P6/dns_named.conf_template"
-		self.input_file = "/home/administrateur/VDF_P6/dns_ztest"
-		self.output_file = "/home/administrateur/VDF_P6/db.test.dns"
+		self.input_file = "/home/administrateur/VDF_P6/template/dns_zone_tpl_debian"
+		self.output_file = "/home/administrateur/VDF_P6/resultat/db.test.dns"
 		self.text_to_write = text_to_write
 		self.default_dict = {\
 		'domain_name': 'serveur.exemple.org', \
@@ -30,12 +31,13 @@ class Dns2:
 		'TTL': '604800', \
 		'ORIGIN': 'example.org', \
 		'serial': 'date_jour', \
-		'refresh': "3600 ou 1H", \
-		'retry': '1200 ou 15M', \
-		'expire': '2592000 ou 1m'\
+		'refresh': "3600", \
+		'retry': '1200', \
+		'expire': '2592000'\
 		}
 		self.with_dollar = ('ORIGIN', 'TTL')
 		self.with_SOA= ('serial', 'refresh', 'retry', 'expire')
+
 		self.entree = entree
 		self.template = ouverture(self.input_file)
 
@@ -91,8 +93,8 @@ class Dns:
 
 	def __init__(self, entree={}, text_to_write=''):
 		#self.input_file = "/home/administrateur/VDF_P6/dns_named.conf_template"
-		self.input_file = "/home/administrateur/VDF_P6/dns_named.conf_template"
-		self.output_file = "/home/administrateur/VDF_P6/named.conf"
+		self.input_file = "/home/administrateur/VDF_P6/template/dns_named.conf_tpl_debian"
+		self.output_file = "/home/administrateur/VDF_P6/resultat/named.conf"
 		self.text_to_write = text_to_write
 		self.default_dict = {\
 		'zone': 'example.org2', \
@@ -177,8 +179,8 @@ class DhcpdConf:
 
 	def __init__(self, entree={}, text_to_write=''):
 		""" Création des attributs de l'objet  """
-		self.output_file = "/home/administrateur/VDF_P6/dhcpd.conf"
-		self.input_file = "/home/administrateur/VDF_P6/dhcpd.conf_template_debian"
+		self.output_file = "/home/administrateur/VDF_P6/resultat/dhcpd.conf"
+		self.input_file = "/home/administrateur/VDF_P6/template/dhcpd.conf_tpl_debian"
 		self.default_dict = { "domain-name": "exemple.org", \
 		 "domain-name-servers": "8.8.8.8, 8.8.4.4", \
 		  "default-lease-time": "600", \
@@ -186,7 +188,8 @@ class DhcpdConf:
 		  "routers": "routeur1.exemple.org, routeur2.exemple.org", \
 		  "authoritative": "#authoritative", \
 		  "subnet": "172.16.100.0", \
-  		  "range": "172.16.100.10 172.16.100.20" \
+  		  "range": "172.16.100.10 172.16.100.20", \
+  		  "broadcast-address": "172.16.100.255" \
   		  }
 	
 		self.text_to_write = text_to_write
@@ -219,7 +222,7 @@ class DhcpdConf:
 			self.text_to_write = self.template
 			#print(self.text_to_write[1])
 		ecrire_fichier(self.output_file, self.text_to_write)
-		
+		print("Le fichier {0} viens d'être créé sur le serveur".format(self.output_file))
 		#print(self.text_to_write)	# pour le debogage, a supprimer
 	
 	def write(self, text_to_add=''):
@@ -232,8 +235,8 @@ class DhcpdConf:
 class IscDhcpServer:
 	""" Class qui va créer le fichier isc-dhcp-server avec la carte interface"""
 	def __init__(self, entree={}, text_to_write=''):
-		self.output_file = "/home/administrateur/VDF_P6/isc-dhcp-server"
-		self.input_file = "/home/administrateur/VDF_P6/isc-dhcp-server_template_debian"
+		self.output_file = "/home/administrateur/VDF_P6/resultat/isc-dhcp-server"
+		self.input_file = "/home/administrateur/VDF_P6/template/isc-dhcp-server_tpl_debian"
 		self.default_dict = { "INTERFACES": "eth0"}
 		self.entree = entree
 		self.text_to_write = text_to_write
@@ -242,6 +245,7 @@ class IscDhcpServer:
 				self.text_to_write = 'INTERFACES="{0}"'.format(self.entree["INTERFACES"])
 				#print(self.text_to_write)
 				ecrire_fichier(self.output_file, self.text_to_write)
+				print("Le fichier {0} viens d'être créé sur le serveur".format(self.output_file))
 
 			else:
 				print("Pas trouvé la carte Interface dans le fichier ")
@@ -252,11 +256,17 @@ class IscDhcpServer:
 
 # Définir la fonction ouverture du fichier yml ligne par ligne pour envoie à la fonction cleaning_yml
 def ouverture_yml(monfichier):
-	with open(monfichier, "r") as file_opened:
-		try:
+	try:
+		with open(monfichier, "r") as file_opened:
 			return yaml.safe_load(file_opened)
-		except yaml.YAMLError as exc:
-			print(exc)
+	except IOError as exc:
+		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
+		sys.exit(0)	
+	except yaml.YAMLError as exc:
+		print(" Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML")
+		print(exc)
+		sys.exit(0)	
+
 
 def ouverture(monfichier):
 	""" ouverture des fichiers en mode ligne par ligne """
@@ -264,8 +274,11 @@ def ouverture(monfichier):
 		with open(monfichier, "r") as file_opened:
 			contenu = file_opened.read()
 			return contenu
-	except:
-		print("Autre erreur")
+	except IOError as exc:
+		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
+		sys.exit(0)	
+	except os.error as exc:
+		print("Autre erreur", exc)
 
 
 
@@ -277,3 +290,4 @@ def ecrire_fichier(monfichier, contenu):
 	except:
 		print("Erreur d'écriture du fichier {} ".format(monfichier))
 		file_to_close.close()
+
