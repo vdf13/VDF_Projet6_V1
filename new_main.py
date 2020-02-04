@@ -2,35 +2,114 @@
 #-*- coding: utf-8 -*-
 
 
-import os, sys, yaml
+import os, sys, yaml, argparse, time
 from new_fonctions import *
-
-
-
-
-# partie à developper pour trier dans les rôles
 '''
-def choix_role(dictionnaire_yml):
-	if 'role_name' in dictionnaire_yml.keys():
-		role_demande = dictionnaire_yml['role_name']
-		print("rôle trouvé : ", role_demande)
+option en utilisant les arguments
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--dhcp", action="store_true", help="argument à utiliser pour dhcp")
+parser.add_argument("-n", "--dns", action="store_true", help="argument à utiliser pour dns")
+arg = parser.parse_args()
+
+if arg.dhcp:
+	role_arg = "dhcp"
+if arg.dns:
+	role_arg = "dns"
 '''
+
+# On teste qu'il y a bien le minimum d'argument dans la commande il en faut 3.
+if len(sys.argv) <  3:
+	print("précisez un fichier et une commande lors de l'execution du programme\nConnect\ninstall\nconfigure\ntest")
+	sys.exit(0)
+
+
+# variables pour ouvrir le fichier yaml avec les arguments fichier et action
+fichier_yml = sys.argv[1]	# nom du fichier en premier parametre
+action = sys.argv[2]		# action qui sera effectué
+
+# partie de sélection des actions en fonction de l'argument, apelle les fonctions ou classes
+if action == "connect":
+	print("Partie connexion lancé :")
+	Vars_cnx = ouverture_yml(fichier_yml)
+	if Vars_cnx['connect']:
+		IP_target = (Vars_cnx['connect']['IP_connexion'])
+		user = (Vars_cnx['connect']['user_connexion'])
+		# on lance la commande pour la connexion ssh On utilise le module os et la methode system
+		os.system("ssh {0}@{1} 'touch fichier.TEST'; exit".format(user, IP_target))
+	
+
+elif action == "install":
+	print("Partie installation lancé :")
+	Vars_ins = ouverture_yml(fichier_yml)
+	if Vars_ins['role_name']:
+		if Vars_ins['role_name']['title'] == "dhcp":
+			# installation dhcp
+			os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "isc-dhcp-server"))
+			
+
+		elif Vars_ins['role_name']['title'] == "dns":
+			#installation dns
+			os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "bind9"))
+
+		else:
+			print("pas de role trouvé dans le fichier")
+			# possibilité de rajouté un test sur la présence de title sinon erreur
+			now = time.strftime("%d %b %Y %H:%M")
+			print(now + " Inscrire erreur")
+			sys.exit(0)
+
+elif action == "configure":
+	# Actions qui seront effectuées pour la configuration dhcp ou dns
+	Vars_cfg = ouverture_yml(fichier_yml)
+	if Vars_cfg['role_name']:
+		if Vars_cfg['role_name']['title'] == "dhcp":
+			print("Partie configuration lancé : role = " + (Vars_cfg['role_name']['title']))
+			dhcpd = DhcpdConf(Vars_cfg['role_name'])
+			isc = IscDhcpServer(Vars_cfg['role_name'])
+
+		elif Vars_cfg['role_name']['title'] == "dns":
+			print("Partie configuration lancé : role = " + (Vars_cfg['role_name']['title']))
+			dns = Dns(Vars_cfg['role_name'])
+			dns2 = Dns2(Vars_cfg['role_name2'])
+
+		else:
+			print("pas de role trouvé dans le fichier")
+			# possibilité de rajouté un test sur la présence de title sinon erreur
+			now = time.strftime("%d %b %Y %H:%M")
+			print(now + " Inscrire erreur")
+			sys.exit(0)
+	else:
+		print("pas de role name dans le fichier")
+
+elif action == "test":
+	print("Partie test lancé :")
+
+elif action == "auto":
+	print("Partie automatique lancé :")
+
+else:
+	print("L'action demandée est inconnue, la syntaxe est :\nprogramme.py fichier.yml [connect | install | configure | test | auto ]")
+	now = time.strftime("%d %b %Y %H:%M")
+	print(now + " Inscrire erreur")
+	sys.exit(0)
+
 
 # création de l'objet dhcpd.conf
 #dhcpd = DhcpdConf(val_yml)
 #print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dhcpd.output_file, file_yml))
 
+'''
+Mis en pause le temps de developper la partie connexion
 
-# variables pour ouvrir le fichier yaml avec les arguments fichier et role recherché
 fichier_yml = sys.argv[1]	# nom du fichier en premier parametre
 info = sys.argv[2]			# title pour lire le nom du role à configurer
+
 
 # ouverture du fichier source yaml et chargement des parametres dans le dictionnaire Vars
 Vars = ouverture_yml(fichier_yml)
 #print(Vars['role_name'])
 
-IP = "1.2.3.4"	# test d'affichage, a remplacer par variable ip du fichier
-# Test du role trouvé dans la variable Vars et parametre lancé a l'execution ex: python.py fichier dhcp
 if Vars['role_name'][info] == 'dhcp':
 	print("Le rôle {0} va être configuré sur le serveur : {1}\n".format(Vars['role_name'][info], IP))
 	dhcpd = DhcpdConf(Vars['role_name'])
@@ -46,4 +125,5 @@ elif Vars['role_name'][info] == 'dns':
 else:
 	print("pas trouvé de role à installer")
 
+'''
 
