@@ -2,7 +2,10 @@
 #-*- coding: utf-8 -*-
 
 
-import os, sys, yaml, argparse, time
+#import os	
+
+import sys, yaml, time
+# import argparse,  paramiko
 from new_fonctions import *
 '''
 option en utilisant les arguments
@@ -32,12 +35,14 @@ action = sys.argv[2]		# action qui sera effectué
 if action == "connect":
 	print("Partie connexion lancé :")
 	Vars_cnx = ouverture_yml(fichier_yml)
-	if Vars_cnx['connect']:
-		IP_target = (Vars_cnx['connect']['IP_connexion'])
-		user = (Vars_cnx['connect']['user_connexion'])
-		# on lance la commande pour la connexion ssh On utilise le module os et la methode system
-		os.system("ssh {0}@{1} 'touch fichier.TEST'; exit".format(user, IP_target))
 	
+	# on lance la fonction connect_ssh qui utilise le module paramiko
+	cmd = "ls /home/admin/dossier"
+	cmd2 = "pwd"		# test a supprimer ainsi que cmd2 dans appel de fonction
+	result = connect_ssh(Vars_cnx, cmd, cmd2)
+	print(result)
+
+
 
 elif action == "install":
 	print("Partie installation lancé :")
@@ -45,13 +50,22 @@ elif action == "install":
 	if Vars_ins['role_name']:
 		if Vars_ins['role_name']['title'] == "dhcp":
 			# installation dhcp
-			os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "isc-dhcp-server"))
+			#os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "isc-dhcp-server"))
+			cmd = "sudo apt-get install {}".format("jshon")
+			# commande qui servira à copier le fichier de config post install en .origin
+			cmd2 = "cp /home/admin/fb /home/admin/fb.origin ; ls"
+			result = connect_ssh(Vars_ins, cmd, cmd2)
+			print(result)
 			
-
 		elif Vars_ins['role_name']['title'] == "dns":
 			#installation dns
-			os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "bind9"))
-
+			#os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "bind9"))
+			cmd = "sudo apt-get install {}".format("jshon")
+			# commande qui servira à copier le fichier de config post install en .origin
+			cmd2 = "cp /home/admin/fa /home/admin/fa.origin ; ls"
+			result = connect_ssh(Vars_ins, cmd, cmd2)
+			print(result)
+			
 		else:
 			print("pas de role trouvé dans le fichier")
 			# possibilité de rajouté un test sur la présence de title sinon erreur
@@ -65,13 +79,28 @@ elif action == "configure":
 	if Vars_cfg['role_name']:
 		if Vars_cfg['role_name']['title'] == "dhcp":
 			print("Partie configuration lancé : role = " + (Vars_cfg['role_name']['title']))
+			# fichier dhcpd.conf
 			dhcpd = DhcpdConf(Vars_cfg['role_name'])
+			destination = "/home/admin/dossier/"
+			copie_scp(Vars_cfg, dhcpd.output_file, destination)
+			# fichier isc-dhcp-server
 			isc = IscDhcpServer(Vars_cfg['role_name'])
+			destination = "/home/admin/dossier/"	# un autre répertoire peut être défini
+			copie_scp(Vars_cfg, isc.output_file, destination)
+
+			#result = connect_ssh(Vars_cfg, cmd)
+			#print(result)
 
 		elif Vars_cfg['role_name']['title'] == "dns":
 			print("Partie configuration lancé : role = " + (Vars_cfg['role_name']['title']))
+			# fichier 
 			dns = Dns(Vars_cfg['role_name'])
+			destination = "/home/admin/dossier/"
+			copie_scp(Vars_cfg, dns.output_file, destination)
+			# fichier
 			dns2 = Dns2(Vars_cfg['role_name2'])
+			destination = "/home/admin/dossier/"
+			copie_scp(Vars_cfg, dns2.output_file, destination)
 
 		else:
 			print("pas de role trouvé dans le fichier")
