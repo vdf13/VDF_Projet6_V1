@@ -6,6 +6,7 @@ import os
 import yaml
 import re
 import sys
+import paramiko
 
 
 
@@ -114,7 +115,7 @@ class Dns:
 
 		for key in self.entree.keys():
 			self.default_dict[key] = entree[key]
-		print(self.default_dict)
+		#print(self.default_dict)
 
 		# on apelle la fonction de remplacement du texte
 		self.substitue()
@@ -135,13 +136,13 @@ class Dns:
 			
 			if key in self.template:
 				
-				print(key, self.default_dict[key])
+				#print(key, self.default_dict[key])
 				if key in self.with_quote:
 					self.template = re.sub(r"{0}{1}".format(key, regexp), '{0} "{1}"'.format(key, self.default_dict[key]), self.template, count=1 )
 				elif key in self.with_brace:
 					self.template = re.sub(r"{0}{1}".format(key, regexp2), key + " { " + self.default_dict[key] + "; ", self.template, count=0 )
 				elif key in self.with_zone:	
-					print("trouve ?", re.search(r"{0}{1}[\t \w\d]*".format(regexp, key), self.template))
+					#print("trouve ?", re.search(r"{0}{1}[\t \w\d]*".format(regexp, key), self.template))
 					self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template, count=1)
 				else:
 					self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template, count=1 )
@@ -151,7 +152,7 @@ class Dns:
 			
 		ecrire_fichier(self.output_file, self.text_to_write)
 		
-		print(self.text_to_write)	# pour le debogage, a supprimer
+		#print(self.text_to_write)	# pour le debogage, a supprimer
 
 	def load_file():
 		# load base as yml file
@@ -222,7 +223,7 @@ class DhcpdConf:
 			self.text_to_write = self.template
 			#print(self.text_to_write[1])
 		ecrire_fichier(self.output_file, self.text_to_write)
-		print("Le fichier {0} viens d'être créé sur le serveur".format(self.output_file))
+		#print("Le fichier {0} viens d'être créé sur le serveur".format(self.output_file))
 		#print(self.text_to_write)	# pour le debogage, a supprimer
 	
 	def write(self, text_to_add=''):
@@ -245,7 +246,7 @@ class IscDhcpServer:
 				self.text_to_write = 'INTERFACES="{0}"'.format(self.entree["INTERFACES"])
 				#print(self.text_to_write)
 				ecrire_fichier(self.output_file, self.text_to_write)
-				print("Le fichier {0} viens d'être créé sur le serveur".format(self.output_file))
+				#print("Le fichier {0} viens d'être créé sur le serveur".format(self.output_file))
 
 			else:
 				print("Pas trouvé la carte Interface dans le fichier ")
@@ -290,4 +291,56 @@ def ecrire_fichier(monfichier, contenu):
 	except:
 		print("Erreur d'écriture du fichier {} ".format(monfichier))
 		file_to_close.close()
+
+def connect_ssh(Vars_cnx, cmd, *cmd2):
+	if Vars_cnx['connect']:
+		IP_target = (Vars_cnx['connect']['IP_connexion'])
+		user = (Vars_cnx['connect']['user_connexion'])
+	else:
+		sys.exit(1)
+
+	lines =''
+	ssh_client=paramiko.SSHClient()
+	ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	
+	# on lance la connexion avec le user et IP récupéré du dict Vars
+	ssh_client.connect(hostname=IP_target, username=user)
+	# onb execute la commande envoyé
+	stdin, stdout, stderr = ssh_client.exec_command(cmd)
+	# On renvoie le texte de la sortie standard et sortie erreur
+	result_out = stdout.readlines()
+	result_err = stderr.readlines()
+	if result_out != []:
+		lines += "SORTIE NORMALE :\n"
+		for line in result_out:
+			lines += line
+	if result_err != []:		
+		lines += "SORTIE ERREUR :\n"
+		for line in result_err:
+			lines += line
+	# Si une deuxieme commande est appelée à être exécutée
+	if cmd2:
+		stdin, stdout, stderr = ssh_client.exec_command(cmd2[0])
+		result_out = stdout.readlines()
+		result_err = stderr.readlines()
+		if result_out != []:
+			lines += "SORTIE NORMALE :\n"
+			for line in result_out:
+				lines += line
+		if result_err != []:		
+			lines += "SORTIE ERREUR :\n"
+			for line in result_err:
+				lines += line
+	ssh_client.close()		
+	return(lines)
+	
+def copie_scp(Vars, source, destination):
+	IP_target = (Vars['connect']['IP_connexion'])
+	user = (Vars['connect']['user_connexion'])
+	os.system("scp {0} {1}@{2}:{3}".format(source, user, IP_target, destination))
+
+
+	
+
+
 
