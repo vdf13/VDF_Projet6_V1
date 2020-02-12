@@ -4,7 +4,7 @@
 
 #import os	
 
-import sys, yaml, time
+import sys, yaml
 # import argparse,  paramiko
 from new_fonctions import *
 '''
@@ -21,10 +21,14 @@ if arg.dns:
 	role_arg = "dns"
 '''
 
+log_file = "/home/administrateur/VDF_P6/resultat/riac.log"
+
 # On teste qu'il y a bien le minimum d'argument dans la commande il en faut 3.
 if len(sys.argv) <  3:
 	print("précisez un fichier et une commande lors de l'execution du programme\nConnect\ninstall\nconfigure\ntest")
-	sys.exit(0)
+	error_texte = " Error 3: précisez un fichier et une commande lors de l'execution du programme\n"
+	ecrire_error(log_file, error_texte)
+
 
 
 # variables pour ouvrir le fichier yaml avec les arguments fichier et action
@@ -41,7 +45,7 @@ if action == "connect":
 	cmd2 = "pwd"		# test a supprimer ainsi que cmd2 dans appel de fonction
 	result = connect_ssh(Vars_cnx, cmd, cmd2)
 	print(result)
-
+	
 
 
 elif action == "install":
@@ -56,6 +60,7 @@ elif action == "install":
 			cmd2 = "cp /home/admin/fb /home/admin/fb.origin ; ls"
 			result = connect_ssh(Vars_ins, cmd, cmd2)
 			print(result)
+			# tester dans result la présence done et ecrire le log
 			
 		elif Vars_ins['role_name']['title'] == "dns":
 			#installation dns
@@ -69,9 +74,10 @@ elif action == "install":
 		else:
 			print("pas de role trouvé dans le fichier")
 			# possibilité de rajouté un test sur la présence de title sinon erreur
-			now = time.strftime("%d %b %Y %H:%M")
-			print(now + " Inscrire erreur")
-			sys.exit(0)
+			
+			error_texte = " Error 4: Pas de role trouvé dans le fichier YAML\n"
+			ecrire_error(log_file, error_texte)
+			
 
 elif action == "configure":
 	# Actions qui seront effectuées pour la configuration dhcp ou dns
@@ -105,11 +111,13 @@ elif action == "configure":
 		else:
 			print("pas de role trouvé dans le fichier")
 			# possibilité de rajouté un test sur la présence de title sinon erreur
-			now = time.strftime("%d %b %Y %H:%M")
-			print(now + " Inscrire erreur")
-			sys.exit(0)
+			error_texte = " Error 4: Pas de role trouvé dans le fichier YAML\n"
+			ecrire_error(log_file, error_texte)
+			
 	else:
-		print("pas de role name dans le fichier")
+		print("pas de role name dans le fichier YAML")
+		error_texte = " Error 4: Pas de role trouvé dans le fichier YAML\n"
+		ecrire_error(log_file, error_texte)
 
 elif action == "test":
 	print("Partie test lancé :")
@@ -117,42 +125,9 @@ elif action == "test":
 elif action == "auto":
 	print("Partie automatique lancé :")
 
+
 else:
 	print("L'action demandée est inconnue, la syntaxe est :\nprogramme.py fichier.yml [connect | install | configure | test | auto ]")
-	now = time.strftime("%d %b %Y %H:%M")
-	print(now + " Inscrire erreur")
-	sys.exit(0)
-
-
-# création de l'objet dhcpd.conf
-#dhcpd = DhcpdConf(val_yml)
-#print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dhcpd.output_file, file_yml))
-
-'''
-Mis en pause le temps de developper la partie connexion
-
-fichier_yml = sys.argv[1]	# nom du fichier en premier parametre
-info = sys.argv[2]			# title pour lire le nom du role à configurer
-
-
-# ouverture du fichier source yaml et chargement des parametres dans le dictionnaire Vars
-Vars = ouverture_yml(fichier_yml)
-#print(Vars['role_name'])
-
-if Vars['role_name'][info] == 'dhcp':
-	print("Le rôle {0} va être configuré sur le serveur : {1}\n".format(Vars['role_name'][info], IP))
-	dhcpd = DhcpdConf(Vars['role_name'])
-	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dhcpd.output_file, fichier_yml))
-	isc = IscDhcpServer(Vars['role_name'])
-	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( isc.output_file, fichier_yml))
-elif Vars['role_name'][info] == 'dns':
-	print("Le rôle {0} va être configuré sur le serveur : {1}\n".format(Vars['role_name'][info], IP))
-	dns = Dns(Vars['role_name'])
-	dns2 = Dns2(Vars['role_name2'])
-	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dns.output_file, fichier_yml))
-	print("Le fichier {0} viens d'être créé avec les valeurs du fichier {1} .".format( dns2.output_file, fichier_yml))
-else:
-	print("pas trouvé de role à installer")
-
-'''
+	error_texte = " Error 3: L'action demandée est inconnue\n"
+	ecrire_error(log_file, error_texte)
 
