@@ -7,10 +7,11 @@ import yaml
 import re
 import sys
 import paramiko
+import time
 
 
 
-
+log_file = "/home/administrateur/VDF_P6/resultat/riac.log"
 
 # LES CLASSES
 class Dns2:
@@ -262,11 +263,14 @@ def ouverture_yml(monfichier):
 			return yaml.safe_load(file_opened)
 	except IOError as exc:
 		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
-		sys.exit(0)	
+		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
+		ecrire_error(log_file, error_texte)
 	except yaml.YAMLError as exc:
 		print(" Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML")
 		print(exc)
-		sys.exit(0)	
+		error_texte = " Error 5 : Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML.\n"
+		ecrire_error(log_file, error_texte)
+		
 
 
 def ouverture(monfichier):
@@ -277,7 +281,10 @@ def ouverture(monfichier):
 			return contenu
 	except IOError as exc:
 		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
-		sys.exit(0)	
+		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
+		ecrire_error(log_file, error_texte)
+
+		
 	except os.error as exc:
 		print("Autre erreur", exc)
 
@@ -291,13 +298,41 @@ def ecrire_fichier(monfichier, contenu):
 	except:
 		print("Erreur d'écriture du fichier {} ".format(monfichier))
 		file_to_close.close()
+		error_texte = " Error 5 : Erreur d'écriture du fichier {} \n".format(monfichier)
+		ecrire_error(log_file, error_texte)
+
+def ecrire_error(log_file, error_texte):
+	try:
+		now = time.strftime("%d %b %Y %H:%M")
+		sys.exit(error_texte)
+	except SystemExit:
+		now += str(sys.exc_info()[1])
+		print(now)
+		with open(log_file, "a") as file_to_append:
+			file_to_append.write(now)
+	finally:
+		sys.exit(0)
+
+
+def ecrire_output(log_file, output_texte):
+	now = time.strftime("%d %b %Y %H:%M")
+	now += output_texte
+	with open(log_file, "a") as file_to_append:
+			file_to_append.write(now)
+	
+
 
 def connect_ssh(Vars_cnx, cmd, *cmd2):
 	if Vars_cnx['connect']:
 		IP_target = (Vars_cnx['connect']['IP_connexion'])
 		user = (Vars_cnx['connect']['user_connexion'])
+		output_texte = " La connexion au serveur {} c'est correctement effectuée.\n".format(IP_target)
+		ecrire_output(log_file, output_texte)
 	else:
-		sys.exit(1)
+		error_texte = " Error 6 : Problème de connexion ssh sur IP: {} \n".format(IP_target)
+		ecrire_error(log_file, error_texte)
+
+		
 
 	lines =''
 	ssh_client=paramiko.SSHClient()
