@@ -54,22 +54,34 @@ elif action == "install":
 	if Vars_ins['role_name']:
 		if Vars_ins['role_name']['title'] == "dhcp":
 			# installation dhcp
+			package = "jshon"
 			#os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "isc-dhcp-server"))
-			cmd = "sudo apt-get install {}".format("jshon")
+			cmd = "sudo apt-get install {}".format(package)
 			# commande qui servira à copier le fichier de config post install en .origin
 			cmd2 = "cp /home/admin/fb /home/admin/fb.origin ; ls"
-			result = connect_ssh(Vars_ins, cmd, cmd2)
-			print(result)
+			# Commande pour vérifier le que la package a bien été installé
+			cmd3 = "sudo apt list --installed {}*".format(package)
+			result = connect_ssh(Vars_ins, cmd, cmd2, cmd3)
+			#print(result)
+			if package in result and "[installed]" in result:
+				output_texte = " Le package {} viens d'être installé sur le serveur {} ".format(package, Vars_ins['connect']['IP_connexion'])
+				ecrire_output(log_file, output_texte)
 			# tester dans result la présence done et ecrire le log
 			
 		elif Vars_ins['role_name']['title'] == "dns":
 			#installation dns
+			package = "jshon"
 			#os.system("ssh {0}@{1} 'touch fichier.TEST'; 'apt-get install {2}'; exit".format(user, IP_target, "bind9"))
-			cmd = "sudo apt-get install {}".format("jshon")
+			cmd = "sudo apt-get install {}".format(package)
 			# commande qui servira à copier le fichier de config post install en .origin
 			cmd2 = "cp /home/admin/fa /home/admin/fa.origin ; ls"
-			result = connect_ssh(Vars_ins, cmd, cmd2)
+			# Commande pour vérifier le que la package a bien été installé
+			cmd3 = "sudo apt list --installed {}*".format(package)
+			result = connect_ssh(Vars_ins, cmd, cmd2, cmd3)
 			print(result)
+			if package in result and "[installed]" in result:
+				output_texte = " Le package {} viens d'être installé sur le serveur {} ".format(package, Vars_ins['connect']['IP_connexion'])
+				ecrire_output(log_file, output_texte)
 			
 		else:
 			print("pas de role trouvé dans le fichier")
@@ -88,11 +100,11 @@ elif action == "configure":
 			# fichier dhcpd.conf
 			dhcpd = DhcpdConf(Vars_cfg['role_name'])
 			destination = "/home/admin/dossier/"
-			copie_scp(Vars_cfg, dhcpd.output_file, destination)
+			copie_scp(Vars_cfg, dhcpd.output_file, destination, dhcpd.name_file)
 			# fichier isc-dhcp-server
 			isc = IscDhcpServer(Vars_cfg['role_name'])
 			destination = "/home/admin/dossier/"	# un autre répertoire peut être défini
-			copie_scp(Vars_cfg, isc.output_file, destination)
+			copie_scp(Vars_cfg, isc.output_file, destination, isc.name_file)
 
 			#result = connect_ssh(Vars_cfg, cmd)
 			#print(result)
@@ -102,11 +114,11 @@ elif action == "configure":
 			# fichier 
 			dns = Dns(Vars_cfg['role_name'])
 			destination = "/home/admin/dossier/"
-			copie_scp(Vars_cfg, dns.output_file, destination)
+			copie_scp(Vars_cfg, dns.output_file, destination, dns.name_file)
 			# fichier
 			dns2 = Dns2(Vars_cfg['role_name2'])
 			destination = "/home/admin/dossier/"
-			copie_scp(Vars_cfg, dns2.output_file, destination)
+			copie_scp(Vars_cfg, dns2.output_file, destination, dns2.name_file)
 
 		else:
 			print("pas de role trouvé dans le fichier")
