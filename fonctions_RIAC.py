@@ -1,147 +1,353 @@
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
-# Sous linux penser à mettre le chemin de l'interpeteur Python
 
+import os, sys, paramiko
+import re, yaml, time
 
-import os
+# Chemin du fichier log du programme
+log_file = "/home/administrateur/VDF_P6/resultat/riac.log"
 
-
-# Définir la fonction ouverture qui est appelé avec comme argument le nom du fichier
-def ouverture(monfichier):
-	""" Fontion destiné à l'ouverture de fichier yml 
-
-	- se positionne dans le répertoire défini
-	- ouvre les fichiers yml donné en entrée
-	- retourne les données du fichier lu
-	- gère les erreurs de lecture de fichiers
-
+# LES CLASSES des objets fichiers a créer
+class Dns2:
+	""" Classe qui va créer l'objet fichier db.zone
+	Attributs de cette classe :
+	- nom et chemin fichier entrée(template) et sortie(zone)
+	- dictionnaire des valeurs par defaut si pas transmis en valeur entree, c'est le parametre par défaut qui est pris
+	- méthodes : se créer, substituer texte
 	"""
+
+	def __init__(self, entree={}, text_to_write=''):
+		# Création des attributs de l'objet 
+		self.input_file = "/home/administrateur/VDF_P6/template/dns_zone_tpl_debian"
+		self.output_file = "/home/administrateur/VDF_P6/resultat/db.test.dns"
+		self.name_file = "db.test.dns"
+		self.text_to_write = text_to_write
+		self.default_dict = {\
+		'domain_name': 'serveur.exemple.org', \
+		'domain_IP': '66.77.88.99', \
+		'www_IP': '100.101.102.103', \
+		'domain_email': 'webmaster.serveur.exemple.org', \
+		'TTL': '604800', \
+		'ORIGIN': 'example.org', \
+		'serial': 'date_jour', \
+		'refresh': "3600", \
+		'retry': '1200', \
+		'expire': '2592000'\
+		}
+		self.with_dollar = ('ORIGIN', 'TTL')
+		self.with_SOA= ('serial', 'refresh', 'retry', 'expire')
+		self.entree = entree
+		self.template = ouverture(self.input_file)
+		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
+		for key in self.entree.keys():
+			self.default_dict[key] = entree[key]
+
+		# on apelle la fonction de remplacement du texte
+		self.substitue()
+
+	def substitue(self):
+		'''
+		Fonction qui remplace dans le texte template les valeur du dictionnaire par défaut modifé
+		- fichier entrée yaml
+		- dictionnaire par défaut
+		'''
+		# définitions des expressions régulières pour la substitution de texte
+		regexp1 = '\$'				# pour partie qui commence par $
+		regexp2 = '[\d\w]*\s;\s' 	# pour partie SOA
+		
+		for key in self.default_dict:
+			# On teste toute les clés du dictionnaire pour les chercher dans le fichier template
+			if key in self.template:
+				# en fonction de la position du texte plusieurs types de séquence re remplacement 
+				if key in self.with_dollar:
+					self.template = re.sub(r"{0}{1}[\t \w\d]*".format(regexp1, key), '${0} {1}'.format(key, self.default_dict[key]), self.template, count=1 )
+				elif key in self.with_SOA:
+					self.template = re.sub(r"{0}{1}".format(regexp2, key), str(self.default_dict[key]) + " ; " + key, self.template, count=0 )
+				else:
+					self.template = re.sub(r"{0}".format(key), "{0}".format(self.default_dict[key]), self.template)	
+				self.text_to_write = self.template	
+			
+		# Le résultat des modifications est envoyé à la fonction ecrire_fichier		
+		ecrire_fichier(self.output_file, self.text_to_write)
+
+class Dns:
+	""" Classe qui va créer l'objet fichier named.conf
+	Attributs de cette classe :
+	- nom et chemin fichier entrée(template) et sortie(named.conf)
+	- dictionnaire des valeurs par defaut si pas transmis en valeur entree, c'est le parametre par défaut qui est pris
+	- méthodes : se créer, substituer texte
+	"""
+
+	def __init__(self, entree={}, text_to_write=''):
+		# Création des attributs de l'objet 
+		self.input_file = "/home/administrateur/VDF_P6/template/dns_named.conf_tpl_debian"
+		self.output_file = "/home/administrateur/VDF_P6/resultat/named.conf"
+		self.name_file = "named.conf"
+		self.text_to_write = text_to_write
+		self.default_dict = {\
+		'zone': 'example.org2', \
+		'type': 'master', \
+		'file': '/etc/bind/db.example.org', \
+		'directory': "/etc/bind/", \
+		'dump-file': '/var/log/named_dump.db', \
+		'statistics-file': '/var/log/named.stats', \
+		'forwarders': '10.0.10.254', \
+		'listen-on': '53' \
+		}
+		self.with_quote = ('directory', 'dump-file', 'statistics-file', 'zone')
+		self.with_brace = ('forwarders', 'listen-on')
+		self.with_zone = ('file')
+		self.entree = entree
+		self.template = ouverture(self.input_file)
+
+		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
+		for key in self.entree.keys():
+			self.default_dict[key] = entree[key]
+
+		# on apelle la fonction de remplacement du texte
+		self.substitue()
+
+	def substitue(self):
+		'''
+		Fonction qui remplace le texte du fichier template par les valeur du dictionnaire par défaut modifé
+		- fichier entrée yaml
+		- dictionnaire par défaut
+		'''
+		# définitions des expressions régulières pour la substitution de texte
+		regexp1 = '[ ]"([\w".,-/]*)' # cas général avec texte entre ""  jusque trouver le ; 
+		regexp2 = '[ ]{([\w .;]*)' # pour forwarders
+		regexp3 = '[ ]([\w]*)' # pour type, remplcer texte sans les ""
+
+		for key in self.default_dict:
+			# On teste toute les clés du dictionnaire pour les chercher dans le fichier template
+			if key in self.template:
+				# en fonction de la position du texte plusieurs types de séquence re remplacement 
+				if key in self.with_quote:
+					self.template = re.sub(r"\b{0}{1}".format(key, regexp1), '{0} "{1}"'.format(key, self.default_dict[key]), self.template, count=1 )
+				elif key in self.with_brace:
+					self.template = re.sub(r"{0}{1}".format(key, regexp2), key + " { " + self.default_dict[key] + "; ", self.template, count=0 )
+				elif key in self.with_zone:	
+					self.template = re.sub(r" {0}{1}".format(key, regexp1), ' {0} "{1}"'.format(key, self.default_dict[key]), self.template, count=1)	
+				else:
+					self.template = re.sub(r"{0}{1}".format(key, regexp3), '{0} {1}'.format(key, self.default_dict[key]), self.template, count=1 )
+				self.text_to_write = self.template	
+			
+		# Le résultat des modifications est envoyé à la fonction ecrire_fichier	
+		ecrire_fichier(self.output_file, self.text_to_write)
+
+
+class DhcpdConf:
+	""" Classe qui va créer l'objet fichier dhcpd.conf
+	Attributs de cette classe :
+	- nom fichier entrée et sortie
+	- dictionnaire des valeurs par defaut si pas transmis en valeur entree, c'est le parametre par défaut qui est pris
+	- méthodes : se créer, substituer texte
+	"""
+
+	def __init__(self, entree={}, text_to_write=''):
+		# Création des attributs de l'objet 
+		self.output_file = "/home/administrateur/VDF_P6/resultat/dhcpd.conf"
+		self.name_file = "dhcpd.conf"
+		self.input_file = "/home/administrateur/VDF_P6/template/dhcpd.conf_tpl_debian"
+		self.default_dict = { "domain-name": "exemple.org", \
+		 "domain-name-servers": "8.8.8.8, 8.8.4.4", \
+		  "default-lease-time": "600", \
+		  "max-lease-time": "7200", \
+		  "routers": "routeur1.exemple.org, routeur2.exemple.org", \
+		  "authoritative": "#authoritative", \
+		  "subnet": "172.16.100.0", \
+  		  "range": "172.16.100.10 172.16.100.20", \
+  		  "broadcast-address": "172.16.100.255" \
+  		  }	
+		self.text_to_write = text_to_write
+		self.template = ouverture(self.input_file)
+		self.entree = entree
+		
+		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
+		for key in self.entree.keys():
+			self.default_dict[key] = entree[key]
+					
+		# on apelle la fonction de remplacement du texte
+		self.substitue()
+		
+	def substitue(self):
+		'''
+		Fonction qui remplace dans le texte template les valeur du dictionnaire par défaut modifé
+		- fichier entrée yaml
+		- dictionnaire par défaut
+		'''
+		# définitions des expressions régulières pour la substitution de texte
+		regexp = '[ ]([\w"., -]*)' # key+_.," en fait jusque trouver le ;
+		
+
+		for key in self.default_dict:
+			# On teste toute les clés du dictionnaire pour les chercher dans le fichier template
+			self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template)
+			self.text_to_write = self.template
+		
+		# Le résultat des modifications est envoyé à la fonction ecrire_fichier		
+		ecrire_fichier(self.output_file, self.text_to_write)
+
+	'''		plus utilisé
+	def write(self, text_to_add=''):
+		""" Méthode pour écrire le texte dans le fichier """
+		if self.text_to_write != "":
+			self.text_to_write += "\n"
+		self.text_to_write += text_to_add
+		return self.text_to_write	
+	'''
+
+class IscDhcpServer:
+	""" Class qui va créer le fichier isc-dhcp-server avec la carte interface
+	Attributs de cette classe :
+	- nom fichier entrée et sortie
+	- dictionnaire des valeurs par defaut si pas transmis en valeur entree, c'est le parametre par défaut qui est pris
+	- méthodes : se créer
+	"""
+	def __init__(self, entree={}, text_to_write=''):
+		self.output_file = "/home/administrateur/VDF_P6/resultat/isc-dhcp-server"
+		self.name_file = "isc-dhcp-server"
+		self.input_file = "/home/administrateur/VDF_P6/template/isc-dhcp-server_tpl_debian"
+		self.default_dict = { "INTERFACES": "eth0"}
+		self.entree = entree
+		self.text_to_write = text_to_write
+		try:
+			if "INTERFACES" in self.entree.keys():
+				self.text_to_write = 'INTERFACES="{0}"'.format(self.entree["INTERFACES"])
+
+				# Le résultat est envoyé à la fonction ecrire_fichier
+				ecrire_fichier(self.output_file, self.text_to_write)
+			else:
+				print("Pas trouvé la carte Interface dans le fichier ")
+				# inserer un code erreur et log
+		except:
+			print("erreur")
+			# inserer un code erreur et log
+
+# LES FONCTIONS
+ 
+def ouverture_yml(monfichier):
+	''' Fonction d'ouverture du fichier yml pour le dictionnaire self.template des classes
+	gestion des erreurs d'ouverture de fichiers et appele ecrire_error en cas d'erreur
+	'''
+	try:
+		with open(monfichier, "r") as file_opened:
+			return yaml.safe_load(file_opened)
+	except IOError as exc:
+		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
+		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
+		ecrire_error(log_file, error_texte)
+	except yaml.YAMLError as exc:
+		print(" Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML")
+		print(exc)
+		error_texte = " Error 5 : Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML.\n"
+		ecrire_error(log_file, error_texte)
+		
+
+def ouverture(monfichier):
+	""" ouverture des fichiers en mode ligne par ligne """
 	try:
 		with open(monfichier, "r") as file_opened:
 			contenu = file_opened.read()
-			#return file_opened.read()
 			return contenu
-	except FileNotFoundError:
-		print("Le fichier {} n'est pas accessible. ".format(monfichier))
-	except UnicodeDecodeError:
-		print("Problème lors de l'ouverture du fichier : {} ".format(monfichier))
-		file_opened.close()
-	except:
-		print("Autre erreur")
-#  Penser à écrire le fichier log
-
-
-def installation():
-	""" Le but de cette methode est d'installer un role sur un serveur
-	
-	- Détecte le nom du rôle et IP du serveur dans le fichier YAML
-	- Se connecte sur le serveur en ssh avec compte admin
-	- Installe le role suivant commandes du template
-
-	"""
-
-#  Penser à écrire le fichier log
-
-def configuration():
-	""" Le but de cette méthode est de configurer le rôle sur un serveur suite à l'installation.
-	
-	- Détecte le nom du rôle et IP du serveur dans le fichier YAML
-	- Se connecte sur le serveur en ssh avec compte admin
-	- Configure le serveur en fonction des éléments récupéré du fichier YAML
-
-	"""
-
-	# ouvrir le fichier et récupérer dans un dictionnaire les données
-	contenu = ouverture(monfichier)
-
-#  Penser à écrire le fichier log
-
-def tests():
-	""" Le but de cette méthode est de tester que le serveur installé et configuré est opérationnel.
-
-	- Détecte le nom du rôle et IP du serveur dans le fichier YAML
-	- Se connecte sur le serveur en ssh avec compte admin 
-	- Lance les tests en fonction des éléments présent dans le fichier YAML
-
-	"""
-
-#  Penser à écrire le fichier log
-
-def connexion_IP():
-	""" Le but de cette méthode est d'établir une connexion ssh avec le serveur
-
-	- Détecte le nom du rôle et IP du serveur dans le fichier YAML
-	- Se connecte sur le serveur en ssh avec compte admin 
-
-	"""
-#  Penser à écrire le fichier log
+	except IOError as exc:
+		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
+		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
+		ecrire_error(log_file, error_texte)	
+	except os.error as exc:
+		print("Autre erreur", exc)
+		# a completer avec code erreur
 
 def ecrire_fichier(monfichier, contenu):
-	""" Le but de cette méthode est d'écrire le fichier configuration ou log
-
-	- monfichier sera le fichier qui sera écrit
-	- contenu les données de ce fichier
-
-	"""
+	''' Fonction d'écriture dans le fichier souhaité du texte modifié
+	Gestion des erreurs appele ecrire_error si besoin
+	'''
 	try:
 		with open(monfichier, "w") as file_to_close:
 			file_to_close.write(contenu)
 	except:
 		print("Erreur d'écriture du fichier {} ".format(monfichier))
 		file_to_close.close()
-#  Penser à écrire le fichier log
+		error_texte = " Error 5 : Erreur d'écriture du fichier {} \n".format(monfichier)
+		ecrire_error(log_file, error_texte)
 
-def configuration_role(traitement, role_demande):
-	""" Methode pour configurer les rôles détecté dans le fichier yaml
+def ecrire_error(log_file, error_texte):
+	''' Fonction d'écriture dans le fichier log en cas d'erreur
+	Ajoute la date au texte envoyé à la fonction
+	'''
+	try:
+		now = time.strftime("%d %b %Y %H:%M")
+		sys.exit(error_texte)
+	except SystemExit:
+		now += str(sys.exc_info()[1])
+		print(now)
+		with open(log_file, "a") as file_to_append:
+			file_to_append.write(now)
+	finally:
+		sys.exit(0)
 
-	- partie du fichier traité en argument
-	- role choisi en argument
 
-	"""
-	if role_demande == 'dhcp':
-		configuration_dhcp(traitement)
-	elif role_demande == 'dns':
-		configuration_dns(traitement)
-	elif role_demande == 'apache':
-		configuration_apache(traitement)
-	else:
-		print("Aucun rôle défini !? ")
-
-def configuration_dhcp(traitement):
-	""" Fonction qui va générer les fichiers de configuration du rôle dhcp
-
-	- traitement est la partie du fichier qui concerne le dhcp
-	- renvoie 2 fichiers de configuration
-	- /etc/init.d/isc-dhcp-server
-	- /etc/dhcp/dhcpd.conf
-
-	"""
-	file_1 = "C:\\01_DATA\\PYTHON\\VDF_P6\\isc-dhcp-server" # chemin à modifier ultérieurement
-	file_2 = "C:\\01_DATA\\PYTHON\\VDF_P6\\dhcpd.conf" # chemin à modifier ultérieurement
-	if 'dhcp_interface' in traitement:
-		texte_to_write = traitement['dhcp_interface']  # Doublon a voir si besoin de garder
-		line_to_write = "INTERFACEV4=" + '"' + traitement['dhcp_interface'] + '"'
-		print(line_to_write)
-		ecrire_fichier(file_1, line_to_write)
-		print("le fichier {0} viens d'être créé avec la/les valeurs : {1} ".format(file_1, line_to_write))
+def ecrire_output(log_file, output_texte):
+	''' Fonction d'écriture dans le fichier log en cas de création normale du fichier
+	Ajoute la date au texte envoyé à la fonction
+	'''
+	now = time.strftime("%d %b %Y %H:%M")
+	now += output_texte
+	with open(log_file, "a") as file_to_append:
+			file_to_append.write(now)
 	
 
+
+def connect_ssh(Vars_cnx, *cmd):
+	''' Fonction de connexion ssh et exécution de la commande envoyé en argument
+	Gestion des erreurs et appele ecrire_error si besoin ou ecrire_output en cas de réussite
+	'''
+	if Vars_cnx['connect']:
+		IP_target = (Vars_cnx['connect']['IP_connexion'])
+		user = (Vars_cnx['connect']['user_connexion'])
+		output_texte = " La connexion au serveur {} c'est correctement effectuée.\n".format(IP_target)
+		ecrire_output(log_file, output_texte)
 	else:
-		print("Il manque dans le fichier de configuration le parametre dhcp_interface ")
+		error_texte = " Error 6 : Problème de connexion ssh sur IP: {} \n".format(IP_target)
+		ecrire_error(log_file, error_texte)
+
+	lines =''
+	ssh_client=paramiko.SSHClient()
+	ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	
+	# on lance la connexion avec le user et IP récupéré du dict Vars
+	ssh_client.connect(hostname=IP_target, username=user)
+	# on execute la ou les commandes envoyés en argument
+	if cmd:
+		for cmdi in cmd:
+			stdin, stdout, stderr = ssh_client.exec_command(cmdi)
+			result_out = stdout.readlines()
+			result_err = stderr.readlines()
+			if result_out != []:
+				lines += "SORTIE NORMALE :\n"
+				for line in result_out:
+					lines += line
+			if result_err != []:		
+				lines += "SORTIE ERREUR :\n"
+				for line in result_err:
+					lines += line
+	# On cloture la connexion ssh et on renvoie les lignes capturées par stdout et stderr
+	ssh_client.close()		
+	return(lines)
+	
+def copie_scp(Vars, source, destination, name_file):
+	''' Fonction de copie du fichier créé par les classes dans le répertoire du serveur
+	Gestion des erreurs et appele ecrire_error si besoin ou ecrire_output en cas de réussite
+	'''
+	IP_target = (Vars['connect']['IP_connexion'])
+	user = (Vars['connect']['user_connexion'])
+	os.system("scp {0} {1}@{2}:{3}".format(source, user, IP_target, destination))
+	output_texte = " Le fichier {0}{1} à été configuré sur le serveur {2} .\n".format(destination, name_file, IP_target)
+	ecrire_output(log_file, output_texte)
+	# Ajouter une gestion d'erreur 
 
 
-def configuration_dns(traitement):
-	print
-
-def configuration_apache(traitement):
-	print
-
-
-
-
-
-
-
-
+	
 
 
 
