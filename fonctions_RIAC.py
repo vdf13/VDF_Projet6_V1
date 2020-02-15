@@ -8,7 +8,7 @@ import re, yaml, time
 log_file = "/home/administrateur/VDF_P6/resultat/riac.log"
 
 # LES CLASSES des objets fichiers a créer
-class Dns2:
+class Dns_zone:
 	""" Classe qui va créer l'objet fichier db.zone
 	Attributs de cette classe :
 	- nom et chemin fichier entrée(template) et sortie(zone)
@@ -70,7 +70,7 @@ class Dns2:
 		# Le résultat des modifications est envoyé à la fonction ecrire_fichier		
 		ecrire_fichier(self.output_file, self.text_to_write)
 
-class Dns:
+class Dns_named:
 	""" Classe qui va créer l'objet fichier named.conf
 	Attributs de cette classe :
 	- nom et chemin fichier entrée(template) et sortie(named.conf)
@@ -188,15 +188,6 @@ class DhcpdConf:
 		# Le résultat des modifications est envoyé à la fonction ecrire_fichier		
 		ecrire_fichier(self.output_file, self.text_to_write)
 
-	'''		plus utilisé
-	def write(self, text_to_add=''):
-		""" Méthode pour écrire le texte dans le fichier """
-		if self.text_to_write != "":
-			self.text_to_write += "\n"
-		self.text_to_write += text_to_add
-		return self.text_to_write	
-	'''
-
 class IscDhcpServer:
 	""" Class qui va créer le fichier isc-dhcp-server avec la carte interface
 	Attributs de cette classe :
@@ -231,8 +222,15 @@ def ouverture_yml(monfichier):
 	gestion des erreurs d'ouverture de fichiers et appele ecrire_error en cas d'erreur
 	'''
 	try:
+		# On ouvre le fichier et on vérifie que l'on charge un dictionnaire, sinon erreur généré
 		with open(monfichier, "r") as file_opened:
-			return yaml.safe_load(file_opened)
+			contenu = yaml.safe_load(file_opened)
+			if type(contenu) is dict:
+				return contenu
+			else:
+				error_texte = " Error 5 : Erreur d'ouverture du fichier {}, vérifier qu'il s'agit d'un fichier YAML correctement rempli.\n".format(monfichier)
+				ecrire_error(log_file, error_texte)
+
 	except IOError as exc:
 		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
 		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
@@ -242,8 +240,7 @@ def ouverture_yml(monfichier):
 		print(exc)
 		error_texte = " Error 5 : Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML.\n"
 		ecrire_error(log_file, error_texte)
-		
-
+	
 def ouverture(monfichier):
 	""" ouverture des fichiers en mode ligne par ligne """
 	try:
@@ -255,8 +252,9 @@ def ouverture(monfichier):
 		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
 		ecrire_error(log_file, error_texte)	
 	except os.error as exc:
-		print("Autre erreur", exc)
-		# a completer avec code erreur
+		error_texte = " Error 5 : Une erreur : {0} lors de l'ouverture du fichier. Vérifier le fichier.\n".format(exc.filename)
+		ecrire_error(log_file, error_texte)	
+		
 
 def ecrire_fichier(monfichier, contenu):
 	''' Fonction d'écriture dans le fichier souhaité du texte modifié
@@ -302,39 +300,43 @@ def connect_ssh(Vars_cnx, *cmd):
 	''' Fonction de connexion ssh et exécution de la commande envoyé en argument
 	Gestion des erreurs et appele ecrire_error si besoin ou ecrire_output en cas de réussite
 	'''
-	if Vars_cnx['connect']:
-		IP_target = (Vars_cnx['connect']['IP_connexion'])
-		user = (Vars_cnx['connect']['user_connexion'])
-		output_texte = " La connexion au serveur {} c'est correctement effectuée.\n".format(IP_target)
-		ecrire_output(log_file, output_texte)
-	else:
-		error_texte = " Error 6 : Problème de connexion ssh sur IP: {} \n".format(IP_target)
-		ecrire_error(log_file, error_texte)
-
 	lines =''
 	ssh_client=paramiko.SSHClient()
 	ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	
-	# on lance la connexion avec le user et IP récupéré du dict Vars
-	ssh_client.connect(hostname=IP_target, username=user)
-	# on execute la ou les commandes envoyés en argument
-	if cmd:
-		for cmdi in cmd:
-			stdin, stdout, stderr = ssh_client.exec_command(cmdi)
-			result_out = stdout.readlines()
-			result_err = stderr.readlines()
-			if result_out != []:
-				lines += "SORTIE NORMALE :\n"
-				for line in result_out:
-					lines += line
-			if result_err != []:		
-				lines += "SORTIE ERREUR :\n"
-				for line in result_err:
-					lines += line
-	# On cloture la connexion ssh et on renvoie les lignes capturées par stdout et stderr
-	ssh_client.close()		
-	return(lines)
-	
+	if Vars_cnx['connect']:
+		IP_target = (Vars_cnx['connect']['IP_connexion'])
+		user = (Vars_cnx['connect']['user_connexion'])
+		# on teste la connexion au serveur et leve une erreur si connexion impossible
+		try:
+			ssh_client.connect(hostname=IP_target, username=user)
+			# on execute la ou les commandes envoyés en argument
+			if cmd:
+				for cmdi in cmd:
+					stdin, stdout, stderr = ssh_client.exec_command(cmdi)
+					result_out = stdout.readlines()
+					result_err = stderr.readlines()
+					if result_out != []:
+						lines += "SORTIE NORMALE :\n"
+						for line in result_out:
+							lines += line
+					if result_err != []:		
+						lines += "SORTIE ERREUR :\n"
+						for line in result_err:
+							lines += line
+			
+			output_texte = " La connexion au serveur {} c'est correctement effectuée.\n".format(IP_target)
+			ecrire_output(log_file, output_texte)	
+			# On cloture la connexion ssh et on renvoie les lignes capturées par stdout et stderr
+			ssh_client.close()		
+			return(lines)
+		except:
+			error_texte = " Error 6 : Problème de connexion ssh sur le serveur: {} \n".format(IP_target)
+			ecrire_error(log_file, error_texte)	
+	else:
+		error_texte = " Error 7 : Le fichier ne contient pas de valeurs pour la connexion ssh sur IP:\n"
+		ecrire_error(log_file, error_texte)
+
 def copie_scp(Vars, source, destination, name_file):
 	''' Fonction de copie du fichier créé par les classes dans le répertoire du serveur
 	Gestion des erreurs et appele ecrire_error si besoin ou ecrire_output en cas de réussite
@@ -347,7 +349,6 @@ def copie_scp(Vars, source, destination, name_file):
 	# Ajouter une gestion d'erreur 
 
 
-	
 
 
 

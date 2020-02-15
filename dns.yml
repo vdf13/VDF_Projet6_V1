@@ -1,6 +1,7 @@
 
 role_name:
   title: dns
+part_dns_named:
   zone: my.TEST.com
   type: master
   file: /etc/bind/TEST/db.TEST.dns.net
@@ -9,7 +10,7 @@ role_name:
   statistics-file: /var/log/TEST.stats
   forwarders: 192.168.10.243
   listen-on: any
-role_name2:
+part_dns_zone:
   domain_name: srv.TEST.tst
   domain_IP: 192.168.55.66
   www_IP: 192.168.77.88

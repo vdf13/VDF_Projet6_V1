@@ -1,6 +1,7 @@
 --- 
 role_name:
-  title: dhcp
+  title: dhcp 
+part_dhcp_conf:
   domain-name: my_TEST.com
   domain-name-servers: "ns1.TEST.org, ns2.TEST.org"
   routers: rt1.TEST.org, rt2.TEST.org
@@ -12,9 +13,8 @@ role_name:
   range: 192.168.10.100 192.168.10.200
   broadcast-address: 192.168.10.255
   ntp-servers: 192.168.1.254
+part_dhcp_interface:
   INTERFACES: enp0s3
-
-
 connect:
   IP_connexion: 192.168.20.22
   user_connexion: admin
