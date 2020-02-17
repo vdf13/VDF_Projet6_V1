@@ -1,11 +1,12 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3.7
 # -*- coding: utf-8 -*-
+# Victor DE FARIA 2020-01-03 to 2020-02-18
 
 import os, sys, paramiko
 import re, yaml, time
 
 # Chemin du fichier log du programme
-log_file = "/home/administrateur/VDF_P6/resultat/riac.log"
+log_file = "/home/administrateur/RIAC/riac.log"
 
 # LES CLASSES des objets fichiers a créer
 class Dns_zone:
@@ -18,29 +19,34 @@ class Dns_zone:
 
 	def __init__(self, entree={}, text_to_write=''):
 		# Création des attributs de l'objet 
-		self.input_file = "/home/administrateur/VDF_P6/template/dns_zone_tpl_debian"
-		self.output_file = "/home/administrateur/VDF_P6/resultat/db.test.dns"
+		self.input_file = "/home/administrateur/RIAC/template/dns_zone_tpl_debian"
+		self.output_file = "/home/administrateur/RIAC/resultat/db.test.dns"
 		self.name_file = "db.test.dns"
-		self.text_to_write = text_to_write
+		#self.time = time.strftime('%Y%m%d01')
 		self.default_dict = {\
 		'domain_name': 'serveur.exemple.org', \
-		'domain_IP': '66.77.88.99', \
-		'www_IP': '100.101.102.103', \
+		'domain_IP': '192.168.10.253', \
+		'www_IP': '192.168.10.252', \
 		'domain_email': 'webmaster.serveur.exemple.org', \
 		'TTL': '604800', \
-		'ORIGIN': 'example.org', \
-		'serial': 'date_jour', \
-		'refresh': "3600", \
+		'ORIGIN': 'exemple.org', \
+		'serial': '2020020101', \
+		'refresh': '3600', \
 		'retry': '1200', \
 		'expire': '2592000'\
 		}
+		self.default_dict['serial'] = time.strftime('%Y%m%d01')
 		self.with_dollar = ('ORIGIN', 'TTL')
 		self.with_SOA= ('serial', 'refresh', 'retry', 'expire')
 		self.entree = entree
 		self.template = ouverture(self.input_file)
+		self.text_to_write = text_to_write
 		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
 		for key in self.entree.keys():
-			self.default_dict[key] = entree[key]
+			if entree[key] == None:
+				pass
+			else:
+				self.default_dict[key] = entree[key]
 
 		# on apelle la fonction de remplacement du texte
 		self.substitue()
@@ -80,10 +86,9 @@ class Dns_named:
 
 	def __init__(self, entree={}, text_to_write=''):
 		# Création des attributs de l'objet 
-		self.input_file = "/home/administrateur/VDF_P6/template/dns_named.conf_tpl_debian"
-		self.output_file = "/home/administrateur/VDF_P6/resultat/named.conf"
+		self.input_file = "/home/administrateur/RIAC/template/dns_named.conf_tpl_debian"
+		self.output_file = "/home/administrateur/RIAC/resultat/named.conf"
 		self.name_file = "named.conf"
-		self.text_to_write = text_to_write
 		self.default_dict = {\
 		'zone': 'example.org2', \
 		'type': 'master', \
@@ -99,10 +104,14 @@ class Dns_named:
 		self.with_zone = ('file')
 		self.entree = entree
 		self.template = ouverture(self.input_file)
+		self.text_to_write = text_to_write
 
 		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
 		for key in self.entree.keys():
-			self.default_dict[key] = entree[key]
+			if entree[key] == None:
+				pass
+			else:
+				self.default_dict[key] = entree[key]
 
 		# on apelle la fonction de remplacement du texte
 		self.substitue()
@@ -146,9 +155,9 @@ class DhcpdConf:
 
 	def __init__(self, entree={}, text_to_write=''):
 		# Création des attributs de l'objet 
-		self.output_file = "/home/administrateur/VDF_P6/resultat/dhcpd.conf"
+		self.input_file = "/home/administrateur/RIAC/template/dhcpd.conf_tpl_debian"
+		self.output_file = "/home/administrateur/RIAC/resultat/dhcpd.conf"
 		self.name_file = "dhcpd.conf"
-		self.input_file = "/home/administrateur/VDF_P6/template/dhcpd.conf_tpl_debian"
 		self.default_dict = { "domain-name": "exemple.org", \
 		 "domain-name-servers": "8.8.8.8, 8.8.4.4", \
 		  "default-lease-time": "600", \
@@ -159,14 +168,16 @@ class DhcpdConf:
   		  "range": "172.16.100.10 172.16.100.20", \
   		  "broadcast-address": "172.16.100.255" \
   		  }	
-		self.text_to_write = text_to_write
 		self.template = ouverture(self.input_file)
 		self.entree = entree
+		self.text_to_write = text_to_write
 		
 		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
 		for key in self.entree.keys():
-			self.default_dict[key] = entree[key]
-					
+			if entree[key] == None:
+				pass
+			else:
+				self.default_dict[key] = entree[key]
 		# on apelle la fonction de remplacement du texte
 		self.substitue()
 		
@@ -196,9 +207,9 @@ class IscDhcpServer:
 	- méthodes : se créer
 	"""
 	def __init__(self, entree={}, text_to_write=''):
-		self.output_file = "/home/administrateur/VDF_P6/resultat/isc-dhcp-server"
+		self.input_file = "/home/administrateur/RIAC/template/isc-dhcp-server_tpl_debian"
+		self.output_file = "/home/administrateur/RIAC/resultat/isc-dhcp-server"
 		self.name_file = "isc-dhcp-server"
-		self.input_file = "/home/administrateur/VDF_P6/template/isc-dhcp-server_tpl_debian"
 		self.default_dict = { "INTERFACES": "eth0"}
 		self.entree = entree
 		self.text_to_write = text_to_write
@@ -228,17 +239,17 @@ def ouverture_yml(monfichier):
 			if type(contenu) is dict:
 				return contenu
 			else:
-				error_texte = " Error 5 : Erreur d'ouverture du fichier {}, vérifier qu'il s'agit d'un fichier YAML correctement rempli.\n".format(monfichier)
+				error_texte = " Error 3 : Erreur d'ouverture du fichier {}, vérifier qu'il s'agit d'un fichier YAML correctement rempli.\n".format(monfichier)
 				ecrire_error(log_file, error_texte)
 
 	except IOError as exc:
 		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
-		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
+		error_texte = " Error 3 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
 		ecrire_error(log_file, error_texte)
 	except yaml.YAMLError as exc:
 		print(" Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML")
 		print(exc)
-		error_texte = " Error 5 : Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML.\n"
+		error_texte = " Error 3 : Erreur d'ouverture du fichier yaml, vérifier qu'il s'agit d'un fichier YAML.\n"
 		ecrire_error(log_file, error_texte)
 	
 def ouverture(monfichier):
@@ -249,10 +260,10 @@ def ouverture(monfichier):
 			return contenu
 	except IOError as exc:
 		print("Le fichier : {0} n'est pas présent dans le disque.".format(exc.filename))
-		error_texte = " Error 5 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
+		error_texte = " Error 3 : Le fichier : {0} n'est pas présent dans le disque.\n".format(exc.filename)
 		ecrire_error(log_file, error_texte)	
 	except os.error as exc:
-		error_texte = " Error 5 : Une erreur : {0} lors de l'ouverture du fichier. Vérifier le fichier.\n".format(exc.filename)
+		error_texte = " Error 3 : Une erreur : {0} lors de l'ouverture du fichier. Vérifier le fichier.\n".format(exc.filename)
 		ecrire_error(log_file, error_texte)	
 		
 
@@ -266,7 +277,7 @@ def ecrire_fichier(monfichier, contenu):
 	except:
 		print("Erreur d'écriture du fichier {} ".format(monfichier))
 		file_to_close.close()
-		error_texte = " Error 5 : Erreur d'écriture du fichier {} \n".format(monfichier)
+		error_texte = " Error 4 : Erreur d'écriture du fichier {} \n".format(monfichier)
 		ecrire_error(log_file, error_texte)
 
 def ecrire_error(log_file, error_texte):
@@ -331,10 +342,10 @@ def connect_ssh(Vars_cnx, *cmd):
 			ssh_client.close()		
 			return(lines)
 		except:
-			error_texte = " Error 6 : Problème de connexion ssh sur le serveur: {} \n".format(IP_target)
+			error_texte = " Error 4 : Problème de connexion ssh sur le serveur: {} \n".format(IP_target)
 			ecrire_error(log_file, error_texte)	
 	else:
-		error_texte = " Error 7 : Le fichier ne contient pas de valeurs pour la connexion ssh sur IP:\n"
+		error_texte = " Error 5 : Le fichier ne contient pas de valeurs pour la connexion ssh sur IP:\n"
 		ecrire_error(log_file, error_texte)
 
 def copie_scp(Vars, source, destination, name_file):

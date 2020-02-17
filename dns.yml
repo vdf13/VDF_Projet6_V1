@@ -17,9 +17,9 @@ part_dns_zone:
   domain_email: admin.srv.TEST.tst
   TTL: 9999
   ORIGIN: TEST.tst
-  serial: 2020020101
+  serial:
   refresh: 9999
-  retry: 555
+  retry: 99999
   expire: 999999
 connect:
   IP_connexion: 192.168.20.22

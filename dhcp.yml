@@ -16,6 +16,6 @@ part_dhcp_conf:
 part_dhcp_interface:
   INTERFACES: enp0s3
 connect:
-  IP_connexion: 192.168.20.22
+  IP_connexion: 192.168.20.32
   user_connexion: admin
 
