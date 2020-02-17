@@ -1,0 +1,21 @@
+--- 
+role_name:
+  title: dhcp 
+part_dhcp_conf:
+  domain-name: my_TEST.com
+  domain-name-servers: "ns1.TEST.org, ns2.TEST.org"
+  routers: rt1.TEST.org, rt2.TEST.org
+  default-lease-time: 400
+  max-lease-time: 5000
+  authoritative: authoritative
+  subnet: 192.168.10.0
+  netmask: 255.255.255.0
+  range: 192.168.10.100 192.168.10.200
+  broadcast-address: 192.168.10.255
+  ntp-servers: 192.168.1.254
+part_dhcp_interface:
+  INTERFACES: enp0s3
+connect:
+  IP_connexion: 192.168.20.32
+  user_connexion: admin
+
