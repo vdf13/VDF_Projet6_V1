@@ -1,5 +1,6 @@
 #!/usr/bin/python3.7
 # -*- coding: utf-8 -*-
+
 # Victor DE FARIA 2020-01-03 to 2020-02-18
 
 import os, sys, paramiko
@@ -271,6 +272,7 @@ def ecrire_fichier(monfichier, contenu):
 	''' Fonction d'écriture dans le fichier souhaité du texte modifié
 	Gestion des erreurs appele ecrire_error si besoin
 	'''
+
 	try:
 		with open(monfichier, "w") as file_to_close:
 			file_to_close.write(contenu)
@@ -279,6 +281,7 @@ def ecrire_fichier(monfichier, contenu):
 		file_to_close.close()
 		error_texte = " Error 4 : Erreur d'écriture du fichier {} \n".format(monfichier)
 		ecrire_error(log_file, error_texte)
+
 
 def ecrire_error(log_file, error_texte):
 	''' Fonction d'écriture dans le fichier log en cas d'erreur

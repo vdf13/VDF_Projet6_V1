@@ -171,6 +171,3 @@ else:
 	error_texte = " Error 2: L'action demandée est inconnue.\nUsage : python programme.py fichier.yml [connect | install | configure | auto ]"
 	ecrire_error(log_file, error_texte)
 
-
-
-
