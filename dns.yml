@@ -1,0 +1,27 @@
+
+role_name:
+  title: dns
+part_dns_named:
+  zone: my.TEST.com
+  type: master
+  file: /etc/bind/TEST/db.TEST.dns.net
+  directory: /etc/bind/TEST
+  dump-file: /var/log/TEST_dump.db
+  statistics-file: /var/log/TEST.stats
+  forwarders: 192.168.10.243
+  listen-on: any
+part_dns_zone:
+  domain_name: srv.TEST.tst
+  domain_IP: 192.168.55.66
+  www_IP: 192.168.77.88
+  domain_email: admin.srv.TEST.tst
+  TTL: 9999
+  ORIGIN: TEST.tst
+  serial:
+  refresh: 9999
+  retry: 99999
+  expire: 999999
+connect:
+  IP_connexion: 192.168.20.22
+  user_connexion: admin
+
