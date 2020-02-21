@@ -26,10 +26,10 @@ Il comprend 4 listes principales:
 
 # Mode opératoire de lancement du programme
 le programme riac.py doit être lancé avec 2 arguments
-nom fichier 'file.yml' contenant les données pour le service à installer :
+* nom fichier 'file.yml' contenant les données pour le service à installer :
     1. dns.yml
     2. dhcp.yml
-la commande a éxecuter :
+* la commande a éxecuter :
     1. connect      Vérifie que la connexion avec le serveur est possible
     2. install      Installe le package renseigné dans le fichier yaml sur le serveur
     3. configure    Configure le service renseigné dans le fichier yaml en remplaçant le fichier par défaut par les nouvelles valeurs 
@@ -66,16 +66,18 @@ chemin $HOME/riac.log
 # Rédaction du fichier YAML
 Exemple incomplet d'un fichier de configuration pour le service dns.
 Il y a les 4 listes, avec les clés et valeurs séparés par les "deux points" . L'indentation de chaque liste est a respecter.
-*role_name:
-*  title: dns
-*part_dns_named:
-*  zone: my.TEST.com
-*  type: master
-* 
-*part_dns_zone:
-*  domain_name: srv.TEST.tst
-*  domain_IP: 192.168.55.66
-*  
-*connect:
-*  IP_connexion: 192.168.20.22
-*  user_connexion: admin
+```
+role_name:
+  title: dns
+part_dns_named:
+  zone: my.TEST.com
+  type: master
+ 
+part_dns_zone:
+  domain_name: srv.TEST.tst
+  domain_IP: 192.168.55.66
+  
+connect:
+  IP_connexion: 192.168.20.22
+  user_connexion: admin
+```
