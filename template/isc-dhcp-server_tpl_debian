@@ -1,0 +1,3 @@
+# Defaults for isc-dhcp-servers
+
+INTERFACES=""
