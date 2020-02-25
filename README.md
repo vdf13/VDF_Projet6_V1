@@ -4,25 +4,26 @@ Formation AIC, projet 6 "Participez à la vie de la communauté Open Source"
 
 ## Created by Victor DE FARIA
 repository : <https://github.com/vdf13/VDF_Projet6_V1>  
-Started : 03/01/2020
+Started : 2020/01/03  
+Last edit: 2020/02/25
 
 
 # Nom du programme et composition des fichiers
 Le programme s'appelle RIAC : Remote Install And Configure   
->Il est composé de 2 fichiers codés en python: 
+*Il est composé de 2 fichiers codés en python:*   
 * main_RIAC.py  
 * fonction_RIAC.py  
->Composé de 2 fichiers entrée YAML pour service dns ou dhcp:
+*Composé de 2 fichiers entrée YAML pour service dns ou dhcp:*  
 * dns.yml  
 * dhcp.ymp   
->Composé de 2 répertoires: 
+*Composé de 2 répertoires:*   
 * /résultat   Qui acceuille les fichiers créés par le programme avant le transfert au serveur   
 * /templates  Qui contient les fichiers modèles qui seront utilisés par le programme RIAC    
 - dhcpd.conf_tpl_debian   
 - dns_zone_tpl_debian   
 - dns_named.conf_tpl_debian   
 - isc-dhcp-server_tpl_debian   
->Composé d'un fichier log
+*Composé d'un fichier log*  
 * riac.log   
 
 
@@ -44,16 +45,16 @@ Il permet d'automatiser la création des services et évite les erreurs de  réd
 
 
 # Le mode opératoire pour le lancement du programme
-le programme riac.py doit être lancé avec 2 arguments
-* **nom fichier** 'file.yml' contenant les données pour le service à installer :  
-    **dns.yml**  
-    **dhcp.yml**
-* La **commande** a éxecuter :  
-    **connect**      Vérifie que la connexion avec le serveur est possible  
-    **install**      Installe le package renseigné dans le fichier yaml sur le serveur  
-    **configure**    Configure le service renseigné dans le fichier yaml en remplaçant le fichier par défaut par les nouvelles valeurs   
-    **auto**         Les 3 commandes précédentes enchainés automatiquement  
-    **test**         Vérifie que le fichier .yml a les champs 'role_name' 'title' 'connect' renseignés  
+le programme riac.py doit être lancé avec 2 arguments  
+*Le **nom du fichier** contenant les données pour le service à installer :*  
+* **dns.yml**  
+* **dhcp.yml**  
+*La **commande** a éxecuter :*     
+* **connect**      Vérifie que la connexion avec le serveur est possible  
+* **install**      Installe le package renseigné dans le fichier yaml sur le serveur  
+* **configure**    Configure le service renseigné dans le fichier yaml en remplaçant le fichier par défaut par les nouvelles valeurs   
+* **auto**         Les 3 commandes précédentes enchainés automatiquement  
+* **test**         Vérifie que le fichier .yml a les champs 'role_name' 'title' 'connect' renseignés  
 
 >Résultat affiché sur le terminal lors du lancement du programme fonction auto
 ```
