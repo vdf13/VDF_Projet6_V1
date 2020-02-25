@@ -1,54 +1,61 @@
 # VDF_Projet6_V1
 Formation AIC, projet 6 "Participez à la vie de la communauté Open Source"
 
+
 ## Created by Victor DE FARIA
+repository : <https://github.com/vdf13/VDF_Projet6_V1>  
 Started : 03/01/2020
 
+
 # Nom du programme et composition des fichiers
-Remote Install And Configure    RIAC
-Composé de 2 fichiers codé en python: 
-* main_RIAC.py 
-* fonction_RIAC.py 
-Composé de 2 fichiers entrée YAML pour service dns ou dhcp
-* dns.yml
-* dhcp.ymp
-2 répertoires 
-* /résultat   Qui acceuille les fichiers créé par le programme avant transfert au serveur
-* /templates  Qui contient les fichiers modèles qui seront utilisés par le programme
-- dhcpd.conf_tpl_debian
-- dns_zone_tpl_debian
-- dns_named.conf_tpl_debian
-- isc-dhcp-server_tpl_debian
-Fichier log
-* riac.log
+Le programme s'appelle RIAC : Remote Install And Configure   
+Il est composé de 2 fichiers codés en python: 
+* main_RIAC.py  
+* fonction_RIAC.py  
+Composé de 2 fichiers entrée YAML pour service dns ou dhcp:
+* dns.yml  
+* dhcp.ymp   
+Composé de 2 répertoires: 
+* /résultat   Qui acceuille les fichiers créés par le programme avant le transfert au serveur   
+* /templates  Qui contient les fichiers modèles qui seront utilisés par le programme RIAC    
+- dhcpd.conf_tpl_debian   
+- dns_zone_tpl_debian   
+- dns_named.conf_tpl_debian   
+- isc-dhcp-server_tpl_debian   
+Composé d'un fichier log
+* riac.log   
 
 
-# Obectifs et pré-requis
+# Obectifs
 L'objectif  de ce programme est d'installer et configurer les packages dhcp ou dns sur différents serveurs en fonction des valeurs fournies par un fichier au format YAML. Il se lance sur le poste de l'administrateur et se connecte sur les serveurs Debian.
 Il permet d'automatiser la création des services et évite les erreurs de  rédaction des fichiers de configuration.
-pré-requis:
-* Le programme et les fichiers / répertoires doivent être installé sur le poste administrateur
-* Les serveurs doivent être installés avec un compte qui a les droits sudo
-* Le service serveur ssh doit être installé sur les serveurs
-* La clé publique du poste administrateur doit être envoyé aux serveurs
 
-# Types de services gérés:
+
+# Prérequis:
+* Le programme ainsi que les répertoires et fichiers modèles doivent être installés sur le poste de l'administrateur  
+* Les serveurs doivent être installés avec un compte qui a les droits sudo  
+* Le service serveur ssh doit être installé sur les serveurs  
+* La clé publique du poste administrateur doit être envoyé aux serveurs  
+
+
+# Le types de services gérés:
 * DHCP
 * DNS
 
-# Mode opératoire de lancement du programme
-le programme riac.py doit être lancé avec 2 arguments
-* nom fichier 'file.yml' contenant les données pour le service à installer :
-    1. dns.yml
-    2. dhcp.yml
-* la commande a éxecuter :
-    1. connect      Vérifie que la connexion avec le serveur est possible
-    2. install      Installe le package renseigné dans le fichier yaml sur le serveur
-    3. configure    Configure le service renseigné dans le fichier yaml en remplaçant le fichier par défaut par les nouvelles valeurs 
-    4. auto         Les 3 commandes précédentes enchainés automatiquement.
-    5. test         Vérifie que le fichier .yml a les champs 'role_name' 'title' 'connect' renseignés
 
-Résultat affiché sur le terminal lors du lancement du programme fonction auto
+# Le mode opératoire pour le lancement du programme
+le programme riac.py doit être lancé avec 2 arguments
+* **nom fichier** 'file.yml' contenant les données pour le service à installer :
+    **dns.yml**  
+    **dhcp.yml**
+* La **commande** a éxecuter :  
+    **connect**      Vérifie que la connexion avec le serveur est possible  
+    **install**      Installe le package renseigné dans le fichier yaml sur le serveur  
+    **configure**    Configure le service renseigné dans le fichier yaml en remplaçant le fichier par défaut par les nouvelles valeurs   
+    **auto**         Les 3 commandes précédentes enchainés automatiquement  
+    **test**         Vérifie que le fichier .yml a les champs 'role_name' 'title' 'connect' renseignés  
+
+>Résultat affiché sur le terminal lors du lancement du programme fonction auto
 ```
 administrateur@DBG-P6:~RIAC$ python3 main_RIAC.py dhcp.yml auto
 Partie connexion lancé :
@@ -72,9 +79,10 @@ administrateur@DBG-P6:~RIAC$
     8. Ecrire le fichier log en cas de réussite des actions
     9. Ecrire le fichier log en cas d'erreurs
 
-# Fichier log 
-Le fichier riac.log est généré par le programme, il trace les erreurs ainsi que la réussite des étapes du programme
-chemin $HOME/riac.log
+
+# Le Fichier log 
+Le fichier riac.log est généré par le programme, il trace les erreurs ainsi que la réussite des étapes du programme.  
+>chemin $HOME/riac.log
 ```
 25 Feb 2020 09:21 La connexion au serveur 192.168.20.32 c'est correctement effectuée.
 25 Feb 2020 09:21 Le package isc-dhcp-server viens d'être installé sur le serveur 192.168.20.32 25 Feb 2020 09:21 Le fichier /tmp/dhcpd.conf à été configuré sur le serveur 192.168.20.32 .
@@ -85,13 +93,14 @@ chemin $HOME/riac.log
 
 
 # Liste des erreurs générés par le programme
-Les erreurs sont affichés dans le terminal et enregistré dans le fichier log.
+Les erreurs sont affichées dans le terminal et enregistrées dans le fichier log.
     * Erreur 2 : Erreur de syntaxe lors du lancement du programme
     * Erreur 3 : Erreur  de présence, ouverture de fichiers
     * Erreur 4 : Erreur  d'écriture de fichiers, de connexion ssh
     * Erreur 5 : Erreur  d'intégrité du fichier YAML, champs mal renseignés
     * Erreur 6 : Erreur de contrôle de l'installation
-    
+ 
+ 
 # Rédaction du fichier YAML
 Il comprend 4 listes principales indispensables:
 * role_name     signale le role qui sera installé
@@ -99,7 +108,7 @@ Il comprend 4 listes principales indispensables:
 * part_yyy      valeurs utiles pour la création du 2eme fichier config
 * connect       valeurs utiles à la connexion ssh
 
-Exemple d'un fichier de configuration pour le service dns.
+>Exemple d'un fichier de configuration pour le service dns.
 ```
 role_name:
   title: dns
@@ -130,7 +139,7 @@ connect:
 
 ```
 
-Exemple d'un fichier de configuration pour le service dhcp.
+>Exemple d'un fichier de configuration pour le service dhcp.
 ```
 --- 
 role_name:
@@ -157,4 +166,3 @@ connect:
 
 
 
-# 
