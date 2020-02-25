@@ -1,0 +1,13 @@
+$TTL	86400 ; 24 hours could have been written as 24h or 1d
+; $TTL used for all RRs without explicit TTL value
+$ORIGIN example. 
+@  1D  IN  SOA domain_name. domain_email. (
+			      2002022401 ; serial
+			      3H ; refresh
+			      15 ; retry
+			      1w ; expire
+			     )
+@      IN  NS     domain_name. ; in the domain
+; server host definitions
+ns1    IN  A      domain_IP  ;name server definition     
+www    IN  A      www_IP  ;web server definition

@@ -76,6 +76,7 @@ def configure():
 			dhcpd = DhcpdConf(Vars_cfg['part_dhcp_conf'])
 			destination = "/tmp/"
 			#destination = "/etc/dhcp/"
+			print("Partie copie des fichier sur le serveur :")
 			copie_scp(Vars_cfg, dhcpd.output_file, destination, dhcpd.name_file)
 			# création de l'objet fichier isc-dhcp-server
 			isc = IscDhcpServer(Vars_cfg['part_dhcp_interface'])
@@ -89,6 +90,10 @@ def configure():
 			#destination = "/etc/dhcp/"
 			#destination = "/etc/default/"
 			result = connect_ssh(Vars_cfg, cmd1, cmd2)
+			if 'ERREUR' in result:
+				error_texte = " Error 4 : Erreur lors de la copie des fichiers : {0} {1}".format(dhcpd.name_file, isc.name_file)
+				ecrire_error(log_file, error_texte)
+				
 		# Configuration dns
 		elif Vars_cfg['role_name']['title'] == "dns":
 			print("Partie configuration lancé : role = " + (Vars_cfg['role_name']['title']))
@@ -100,12 +105,19 @@ def configure():
 			cmd = "sudo cp /tmp/named.conf /etc/bind/named.conf"
 			result = connect_ssh(Vars_cfg, cmd)
 
-
+			if 'ERREUR' in result:
+				error_texte = " Error 4 : Erreur lors de la copie du fichier : {}".format(dns_named.name_file)
+				ecrire_error(log_file, error_texte)
 
 			# création de l'objet fichier zone
 			dns_zone = Dns_zone(Vars_cfg['part_dns_zone'])
 			destination = "/tmp/"
 			copie_scp(Vars_cfg, dns_zone.output_file, destination, dns_zone.name_file)
+			cmd = "sudo cp /tmp/{0} /etc/bind/{0}".format(dns_zone.name_file)
+			result = connect_ssh(Vars_cfg, cmd)
+			if 'ERREUR' in result:
+				error_texte = " Error 4 : Erreur lors de la copie du fichier : {}".format(dns_zone.name_file)
+				ecrire_error(log_file, error_texte)
 		else:
 			error_texte = " Error 5: Le role : {} trouvé dans le fichier YAML n'est pas correct.\nUsage title:[ dns | dhcp ]\n".format(Vars_cfg['role_name']['title'])
 			ecrire_error(log_file, error_texte)	
@@ -113,7 +125,7 @@ def configure():
 		print("pas de role name dans le fichier YAML")
 		error_texte = " Error 5 : Pas de role name dans le fichier YAML "
 		ecrire_error(log_file, error_texte)
-
+	
 def test():
 	''' Fonction qui vérifie la présence des éléments indispensables dans le fichier YAML
 	role_name, title, connect
@@ -171,3 +183,6 @@ else:
 	error_texte = " Error 2: L'action demandée est inconnue.\nUsage : python programme.py fichier.yml [connect | install | configure | auto ]"
 	ecrire_error(log_file, error_texte)
 
+print("Programme RIAC correctement terminé. Fonction : {}".format(action))
+output_texte = " Programme RIAC correctement terminé. Fonction : {}".format(action)
+ecrire_output(log_file, output_texte)

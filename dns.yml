@@ -2,25 +2,26 @@
 role_name:
   title: dns
 part_dns_named:
-  zone: my.TEST.com
+  zone: VDF-entreprise.com
   type: master
-  file: /etc/bind/TEST/db.TEST.dns.net
-  directory: /etc/bind/TEST
+  file: /etc/bind/db.VDF-entreprise.com
+  directory: /etc/TEST
   dump-file: /var/log/TEST_dump.db
   statistics-file: /var/log/TEST.stats
   forwarders: 192.168.10.243
   listen-on: any
 part_dns_zone:
-  domain_name: srv.TEST.tst
-  domain_IP: 192.168.55.66
-  www_IP: 192.168.77.88
+  name_file: db.VDF-entreprise.com
+  domain_name: VDF-entreprise.com
+  domain_IP: 192.168.10.242
+  www_IP: 192.168.10.241
   domain_email: admin.srv.TEST.tst
-  TTL: 9999
-  ORIGIN: TEST.tst
+  TTL: 604800
+  ORIGIN: VDF-entreprise.com
   serial:
-  refresh: 9999
-  retry: 99999
-  expire: 999999
+  refresh: 3600
+  retry: 3000
+  expire: 2419200
 connect:
   IP_connexion: 192.168.20.22
   user_connexion: admin

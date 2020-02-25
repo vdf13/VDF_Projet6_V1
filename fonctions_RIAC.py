@@ -21,10 +21,10 @@ class Dns_zone:
 	def __init__(self, entree={}, text_to_write=''):
 		# Création des attributs de l'objet 
 		self.input_file = "/home/administrateur/RIAC/template/dns_zone_tpl_debian"
-		self.output_file = "/home/administrateur/RIAC/resultat/db.test.dns"
+		self.output_file = "/home/administrateur/RIAC/resultat/"
 		self.name_file = "db.test.dns"
-		#self.time = time.strftime('%Y%m%d01')
 		self.default_dict = {\
+		'name_file': 'db.test.dns', \
 		'domain_name': 'serveur.exemple.org', \
 		'domain_IP': '192.168.10.253', \
 		'www_IP': '192.168.10.252', \
@@ -42,6 +42,7 @@ class Dns_zone:
 		self.entree = entree
 		self.template = ouverture(self.input_file)
 		self.text_to_write = text_to_write
+		
 		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
 		for key in self.entree.keys():
 			if entree[key] == None:
@@ -74,7 +75,10 @@ class Dns_zone:
 					self.template = re.sub(r"{0}".format(key), "{0}".format(self.default_dict[key]), self.template)	
 				self.text_to_write = self.template	
 			
-		# Le résultat des modifications est envoyé à la fonction ecrire_fichier		
+		# Le résultat des modifications est envoyé à la fonction ecrire_fichier	
+		self.name_file = self.default_dict['name_file']	
+		self.output_file = self.output_file + self.name_file 
+
 		ecrire_fichier(self.output_file, self.text_to_write)
 
 class Dns_named:
@@ -166,11 +170,15 @@ class DhcpdConf:
 		  "routers": "routeur1.exemple.org, routeur2.exemple.org", \
 		  "authoritative": "#authoritative", \
 		  "subnet": "172.16.100.0", \
+		  "netmask": "255.255.255.0", \
   		  "range": "172.16.100.10 172.16.100.20", \
-  		  "broadcast-address": "172.16.100.255" \
-  		  }	
+  		  "broadcast-address": "172.16.100.255", \
+  		  "ntp-servers": "172.216.100.254" \
+  		}	
+		self.with_IP = ('subnet', 'netmask', 'ntp-servers', 'broadcast-address')
+		self.with_hash = ('authoritative')
+		self.entree = entree  
 		self.template = ouverture(self.input_file)
-		self.entree = entree
 		self.text_to_write = text_to_write
 		
 		# on remplace les valeurs des clés du dictionnaire défaut par les valeurs du fichier
@@ -189,12 +197,19 @@ class DhcpdConf:
 		- dictionnaire par défaut
 		'''
 		# définitions des expressions régulières pour la substitution de texte
-		regexp = '[ ]([\w"., -]*)' # key+_.," en fait jusque trouver le ;
+		regexp1 = '[ ]([\w"., -]*)' # key+_.," en fait jusque trouver le ;
+		regexp2 = '(([\d]{1,3}\.){1,3})([\d]{1,3})'	# regexp pour une adresse IP simple
+		regexp3 = '(#)'		# si la ligne commence par le #authoritative
 		
 
 		for key in self.default_dict:
 			# On teste toute les clés du dictionnaire pour les chercher dans le fichier template
-			self.template = re.sub(r"{0}{1}".format(key, regexp), "{0} {1}".format(key, self.default_dict[key]), self.template)
+			if key in self.with_IP:
+				self.template = re.sub(r"{0} {1}".format(key, regexp2), "{0} {1}".format(key, self.default_dict[key]), self.template)
+			elif key in self.with_hash:
+				self.template = re.sub(r"{1}{0}".format(key, regexp3), "{0}".format(self.default_dict[key]), self.template)
+			else:
+				self.template = re.sub(r"{0}{1}".format(key, regexp1), "{0} {1}".format(key, self.default_dict[key]), self.template)
 			self.text_to_write = self.template
 		
 		# Le résultat des modifications est envoyé à la fonction ecrire_fichier		
