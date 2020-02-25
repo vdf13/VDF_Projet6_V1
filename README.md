@@ -9,20 +9,20 @@ Started : 03/01/2020
 
 # Nom du programme et composition des fichiers
 Le programme s'appelle RIAC : Remote Install And Configure   
-Il est composé de 2 fichiers codés en python: 
+>Il est composé de 2 fichiers codés en python: 
 * main_RIAC.py  
 * fonction_RIAC.py  
-Composé de 2 fichiers entrée YAML pour service dns ou dhcp:
+>Composé de 2 fichiers entrée YAML pour service dns ou dhcp:
 * dns.yml  
 * dhcp.ymp   
-Composé de 2 répertoires: 
+>Composé de 2 répertoires: 
 * /résultat   Qui acceuille les fichiers créés par le programme avant le transfert au serveur   
 * /templates  Qui contient les fichiers modèles qui seront utilisés par le programme RIAC    
 - dhcpd.conf_tpl_debian   
 - dns_zone_tpl_debian   
 - dns_named.conf_tpl_debian   
 - isc-dhcp-server_tpl_debian   
-Composé d'un fichier log
+>Composé d'un fichier log
 * riac.log   
 
 
@@ -45,7 +45,7 @@ Il permet d'automatiser la création des services et évite les erreurs de  réd
 
 # Le mode opératoire pour le lancement du programme
 le programme riac.py doit être lancé avec 2 arguments
-* **nom fichier** 'file.yml' contenant les données pour le service à installer :
+* **nom fichier** 'file.yml' contenant les données pour le service à installer :  
     **dns.yml**  
     **dhcp.yml**
 * La **commande** a éxecuter :  
@@ -93,12 +93,12 @@ Le fichier riac.log est généré par le programme, il trace les erreurs ainsi q
 
 
 # Liste des erreurs générés par le programme
-Les erreurs sont affichées dans le terminal et enregistrées dans le fichier log.
-    * Erreur 2 : Erreur de syntaxe lors du lancement du programme
-    * Erreur 3 : Erreur  de présence, ouverture de fichiers
-    * Erreur 4 : Erreur  d'écriture de fichiers, de connexion ssh
-    * Erreur 5 : Erreur  d'intégrité du fichier YAML, champs mal renseignés
-    * Erreur 6 : Erreur de contrôle de l'installation
+Les erreurs sont affichées dans le terminal et enregistrées dans le fichier log.  
+* Erreur 2 : Erreur de syntaxe lors du lancement du programme
+* Erreur 3 : Erreur  de présence, ouverture de fichiers
+* Erreur 4 : Erreur  d'écriture de fichiers, de connexion ssh
+* Erreur 5 : Erreur  d'intégrité du fichier YAML, champs mal renseignés
+* Erreur 6 : Erreur de contrôle de l'installation
  
  
 # Rédaction du fichier YAML
