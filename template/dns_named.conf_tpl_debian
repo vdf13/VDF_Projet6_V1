@@ -42,4 +42,4 @@ zone "spring.wellho.net" in {
 # includes all files as configured in NAMED_CONF_INCLUDE_FILES from
 # /etc/sysconfig/named
 
-include "/etc/named.conf.include";
+#include "/etc/named.conf.include";

@@ -14,7 +14,7 @@ part_dhcp_conf:
   broadcast-address: 192.168.10.255
   ntp-servers: 192.168.1.254
 part_dhcp_interface:
-  INTERFACES: enp0s3
+  INTERFACES: enp0s8
 connect:
   IP_connexion: 192.168.20.32
   user_connexion: admin

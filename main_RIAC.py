@@ -37,10 +37,10 @@ def install():
 			result = connect_ssh(Vars_ins, cmd, cmd2, cmd3)
 			#print(result)	pour debugage
 			if package in result and "[installed]" in result:
-				output_texte = " Le package {} viens d'être installé sur le serveur {} ".format(package, Vars_ins['connect']['IP_connexion'])
+				output_texte = " Le package {} viens d'être installé sur le serveur {} \n".format(package, Vars_ins['connect']['IP_connexion'])
 				ecrire_output(log_file, output_texte)
 			else:
-				output_texte = " Error 6 : Le package {} n'a pas été trouvé sur le serveur {} ".format(package, Vars_ins['connect']['IP_connexion'])
+				output_texte = " Error 6 : Le package {} n'a pas été trouvé sur le serveur {} \n".format(package, Vars_ins['connect']['IP_connexion'])
 				ecrire_error(log_file, output_texte)
 		# Installation dns
 		elif Vars_ins['role_name']['title'] == "dns":
@@ -56,10 +56,10 @@ def install():
 			result = connect_ssh(Vars_ins, cmd, cmd2, cmd3)
 			#print(result)		pour debugage
 			if package in result and "[installed]" in result:
-				output_texte = " Le package {} viens d'être installé sur le serveur {} ".format(package, Vars_ins['connect']['IP_connexion'])
+				output_texte = " Le package {} viens d'être installé sur le serveur {} \n".format(package, Vars_ins['connect']['IP_connexion'])
 				ecrire_output(log_file, output_texte)
 			else:
-				output_texte = " Error 6 : Le package {} n'a pas été trouvé sur le serveur {} ".format(package, Vars_ins['connect']['IP_connexion'])
+				output_texte = " Error 6 : Le package {} n'a pas été trouvé sur le serveur {} \n".format(package, Vars_ins['connect']['IP_connexion'])
 				ecrire_error(log_file, output_texte)
 		else:
 			error_texte = " Error 5: Le role : {} trouvé dans le fichier YAML n'est pas correct.\nUsage title:[ dns | dhcp ]\n".format(Vars_ins['role_name']['title'])
@@ -91,7 +91,7 @@ def configure():
 			#destination = "/etc/default/"
 			result = connect_ssh(Vars_cfg, cmd1, cmd2)
 			if 'ERREUR' in result:
-				error_texte = " Error 4 : Erreur lors de la copie des fichiers : {0} {1}".format(dhcpd.name_file, isc.name_file)
+				error_texte = " Error 4 : Erreur lors de la copie des fichiers : {0} {1}\n".format(dhcpd.name_file, isc.name_file)
 				ecrire_error(log_file, error_texte)
 				
 		# Configuration dns
@@ -106,7 +106,7 @@ def configure():
 			result = connect_ssh(Vars_cfg, cmd)
 
 			if 'ERREUR' in result:
-				error_texte = " Error 4 : Erreur lors de la copie du fichier : {}".format(dns_named.name_file)
+				error_texte = " Error 4 : Erreur lors de la copie du fichier : {}\n".format(dns_named.name_file)
 				ecrire_error(log_file, error_texte)
 
 			# création de l'objet fichier zone
@@ -116,14 +116,14 @@ def configure():
 			cmd = "sudo cp /tmp/{0} /etc/bind/{0}".format(dns_zone.name_file)
 			result = connect_ssh(Vars_cfg, cmd)
 			if 'ERREUR' in result:
-				error_texte = " Error 4 : Erreur lors de la copie du fichier : {}".format(dns_zone.name_file)
+				error_texte = " Error 4 : Erreur lors de la copie du fichier : {}\n".format(dns_zone.name_file)
 				ecrire_error(log_file, error_texte)
 		else:
 			error_texte = " Error 5: Le role : {} trouvé dans le fichier YAML n'est pas correct.\nUsage title:[ dns | dhcp ]\n".format(Vars_cfg['role_name']['title'])
 			ecrire_error(log_file, error_texte)	
 	else:
 		print("pas de role name dans le fichier YAML")
-		error_texte = " Error 5 : Pas de role name dans le fichier YAML "
+		error_texte = " Error 5 : Pas de role name dans le fichier YAML \n"
 		ecrire_error(log_file, error_texte)
 	
 def test():
@@ -136,13 +136,13 @@ def test():
 			if 'connect' in Vars_tst:
 				return
 			else:
-				error_texte = " Error 5: Vérifier la syntaxe  dans le fichier YAML\nPartie 'connect'"
+				error_texte = " Error 5: Vérifier la syntaxe  dans le fichier YAML\nPartie 'connect'\n"
 				ecrire_error(log_file, error_texte)
 		else:
-			error_texte = " Error 5: Vérifier la syntaxe  dans le fichier YAML\nPartie 'title'"
+			error_texte = " Error 5: Vérifier la syntaxe  dans le fichier YAML\nPartie 'title'\n"
 			ecrire_error(log_file, error_texte)
 	else:
-		error_texte = " Error 5: Vérifier la syntaxe  dans le fichier YAML\nPartie 'role_name'"
+		error_texte = " Error 5: Vérifier la syntaxe  dans le fichier YAML\nPartie 'role_name'\n"
 		ecrire_error(log_file, error_texte)
 
 		
@@ -179,10 +179,10 @@ elif action == "auto":
 	configure()
 
 else:
-	print("L'action demandée est inconnue, la syntaxe est :\npython programme.py fichier.yml [connect | install | configure | auto ]")
-	error_texte = " Error 2: L'action demandée est inconnue.\nUsage : python programme.py fichier.yml [connect | install | configure | auto ]"
+	print("L'action demandée est inconnue, la syntaxe est :\npython programme.py fichier.yml [connect | install | configure | auto ]\n")
+	error_texte = " Error 2: L'action demandée est inconnue.\nUsage : python programme.py fichier.yml [connect | install | configure | auto ]\n"
 	ecrire_error(log_file, error_texte)
 
-print("Programme RIAC correctement terminé. Fonction : {}".format(action))
-output_texte = " Programme RIAC correctement terminé. Fonction : {}".format(action)
+print("Programme RIAC correctement terminé. Fonction : {}\n".format(action))
+output_texte = " Programme RIAC correctement terminé. Fonction : {}\n".format(action)
 ecrire_output(log_file, output_texte)

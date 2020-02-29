@@ -163,20 +163,22 @@ class DhcpdConf:
 		self.input_file = "/home/administrateur/RIAC/template/dhcpd.conf_tpl_debian"
 		self.output_file = "/home/administrateur/RIAC/resultat/dhcpd.conf"
 		self.name_file = "dhcpd.conf"
-		self.default_dict = { "domain-name": "exemple.org", \
-		 "domain-name-servers": "8.8.8.8, 8.8.4.4", \
-		  "default-lease-time": "600", \
-		  "max-lease-time": "7200", \
-		  "routers": "routeur1.exemple.org, routeur2.exemple.org", \
-		  "authoritative": "#authoritative", \
-		  "subnet": "172.16.100.0", \
-		  "netmask": "255.255.255.0", \
-  		  "range": "172.16.100.10 172.16.100.20", \
-  		  "broadcast-address": "172.16.100.255", \
-  		  "ntp-servers": "172.216.100.254" \
-  		}	
+		self.default_dict = {\
+		'domain-name': 'exemple.org', \
+		'domain-name-servers': '8.8.8.8, 8.8.4.4', \
+		'default-lease-time': '600', \
+		'max-lease-time': '7200', \
+		'routers': 'routeur1.exemple.org, routeur2.exemple.org', \
+		'authoritative': '#authoritative', \
+		'subnet': '172.16.100.0', \
+		'netmask': '255.255.255.0', \
+  		'range': '172.16.100.10 172.16.100.20', \
+  		'broadcast-address': '172.16.100.255', \
+  		'ntp-servers': '172.216.100.254' \
+  		}
 		self.with_IP = ('subnet', 'netmask', 'ntp-servers', 'broadcast-address')
 		self.with_hash = ('authoritative')
+		self.with_quote = ('domain-name')
 		self.entree = entree  
 		self.template = ouverture(self.input_file)
 		self.text_to_write = text_to_write
@@ -200,7 +202,7 @@ class DhcpdConf:
 		regexp1 = '[ ]([\w"., -]*)' # key+_.," en fait jusque trouver le ;
 		regexp2 = '(([\d]{1,3}\.){1,3})([\d]{1,3})'	# regexp pour une adresse IP simple
 		regexp3 = '(#)'		# si la ligne commence par le #authoritative
-		
+		regexp4 = '[ ]"([\w".,-/]*)'	# with quote
 
 		for key in self.default_dict:
 			# On teste toute les clés du dictionnaire pour les chercher dans le fichier template
@@ -208,6 +210,8 @@ class DhcpdConf:
 				self.template = re.sub(r"{0} {1}".format(key, regexp2), "{0} {1}".format(key, self.default_dict[key]), self.template)
 			elif key in self.with_hash:
 				self.template = re.sub(r"{1}{0}".format(key, regexp3), "{0}".format(self.default_dict[key]), self.template)
+			elif key in self.with_quote:
+				self.template = re.sub(r"\b{0}{1}".format(key, regexp4), '{0} "{1}"'.format(key, self.default_dict[key]), self.template, count=1 )
 			else:
 				self.template = re.sub(r"{0}{1}".format(key, regexp1), "{0} {1}".format(key, self.default_dict[key]), self.template)
 			self.text_to_write = self.template
